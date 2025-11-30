@@ -6,6 +6,14 @@ import { useTheme } from '../../contexts/ThemeContext';
 interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
+  editPost?: {
+    id: string;
+    title: string;
+    content: string;
+    category: string;
+    badge: string;
+  };
+  onSave?: (updatedPost: { id: string; title: string; content: string; category: string; badge: string }) => void;
 }
 
 const CATEGORIES = [
@@ -16,12 +24,25 @@ const CATEGORIES = [
   { id: 'ikinci-el', label: 'İkinci El' },
 ];
 
-export const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
+export const CreatePostModal = ({ isOpen, onClose, editPost, onSave }: CreatePostModalProps) => {
   const { isDarkMode } = useTheme();
-  const [selectedCategory, setSelectedCategory] = useState('akademik');
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(editPost?.category || 'akademik');
+  const [title, setTitle] = useState(editPost?.title || '');
+  const [content, setContent] = useState(editPost?.content || '');
   const [windowWidth, setWindowWidth] = useState(0);
+
+  // Update form when editPost changes
+  useEffect(() => {
+    if (editPost) {
+      setTitle(editPost.title);
+      setContent(editPost.content);
+      setSelectedCategory(editPost.category);
+    } else {
+      setTitle('');
+      setContent('');
+      setSelectedCategory('akademik');
+    }
+  }, [editPost]);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -45,7 +66,25 @@ export const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
   }, [isOpen]);
 
   const handleSubmit = () => {
-    console.log('📝 Post Created:', { title, content, category: selectedCategory });
+    if (editPost && onSave) {
+      // Edit mode
+      const categoryToBadge: Record<string, string> = {
+        'akademik': 'Akademik',
+        'sosyal': 'Sosyal',
+        'yeme-icme': 'Yeme-İçme',
+        'barinma': 'Barınma',
+        'ikinci-el': 'İkinci El',
+      };
+      onSave({
+        id: editPost.id,
+        title,
+        content,
+        category: selectedCategory,
+        badge: categoryToBadge[selectedCategory] || 'Akademik'
+      });
+    } else {
+      console.log('📝 Post Created:', { title, content, category: selectedCategory });
+    }
     // Reset form
     setTitle('');
     setContent('');
@@ -90,7 +129,7 @@ export const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
               isDarkMode ? 'border-slate-700' : 'border-gray-200'
             }`}>
               <h2 className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Sohbet Başlat
+                {editPost ? 'Postu Düzenle' : 'Sohbet Başlat'}
               </h2>
               <button 
                 onClick={onClose}
@@ -186,7 +225,7 @@ export const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
                 className="w-full py-3.5 bg-[#5852c4] hover:bg-[#19142e] text-white font-bold rounded-lg 
                   transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#5852c4]/20"
               >
-                Paylaş
+                {editPost ? 'Kaydet' : 'Paylaş'}
               </button>
             </div>
           </motion.div>

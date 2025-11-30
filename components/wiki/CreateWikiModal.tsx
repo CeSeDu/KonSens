@@ -16,6 +16,7 @@ interface CreateWikiModalProps {
   isOpen: boolean;
   onClose: () => void;
   editEntry?: WikiEntry | null; // Edit mode için mevcut entry
+  onSave?: (entry: WikiEntry) => void; // Optional callback for save
 }
 
 const WIKI_CATEGORIES = [
@@ -60,7 +61,7 @@ const CATEGORY_FIELDS: Record<string, Array<{ icon: any; label: string; key: str
   ],
 };
 
-export const CreateWikiModal = ({ isOpen, onClose, editEntry = null }: CreateWikiModalProps) => {
+export const CreateWikiModal = ({ isOpen, onClose, editEntry = null, onSave }: CreateWikiModalProps) => {
   const { isDarkMode } = useTheme();
   const isEditMode = !!editEntry;
   const [windowWidth, setWindowWidth] = useState(0);
@@ -152,11 +153,31 @@ export const CreateWikiModal = ({ isOpen, onClose, editEntry = null }: CreateWik
   };
 
   const handleSubmit = () => {
+    const savedEntry: WikiEntry = {
+      id: editEntry?.id || `wiki-${Date.now()}`,
+      title,
+      category: WIKI_CATEGORIES.find(c => c.id === selectedCategory)?.label || 'Topluluk Onaylı',
+      data: {
+        fields: currentFields.map(field => ({
+          key: field.key,
+          label: field.label,
+          value: formData[field.key] || ''
+        }))
+      }
+    };
+
     if (isEditMode) {
-      console.log('✏️ Wiki Entry Updated:', { id: editEntry?.id, title, category: selectedCategory, data: formData });
+      console.log('✏️ Wiki Entry Updated:', savedEntry);
+      if (onSave) {
+        onSave(savedEntry);
+      }
     } else {
-      console.log('📚 Wiki Entry Created:', { title, category: selectedCategory, data: formData });
+      console.log('📚 Wiki Entry Created:', savedEntry);
+      if (onSave) {
+        onSave(savedEntry);
+      }
     }
+    
     // Reset form
     setTitle('');
     setFormData({});

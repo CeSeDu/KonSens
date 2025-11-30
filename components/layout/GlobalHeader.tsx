@@ -48,10 +48,11 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
 }) => {
   const { isDarkMode } = useTheme();
   const [activeCategory, setActiveCategory] = useState('all');
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || '');
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
-    setSearchQuery(query);
+    setLocalSearchQuery(query);
     if (onSearch) {
       onSearch(query);
     }
@@ -64,10 +65,10 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
   };
 
   const navItems = [
-    { id: 'home', label: 'Ana Sayfa', icon: Home },
-    { id: 'discover', label: 'Keşfet', icon: Compass },
-    { id: 'notifications', label: 'Aktivite', icon: Bell },
-    { id: 'profile', label: 'Profil', icon: User },
+    { id: 'home', icon: Home },
+    { id: 'discover', icon: Compass },
+    { id: 'notifications', icon: Bell },
+    { id: 'profile', icon: User },
   ];
 
   return (
@@ -103,11 +104,11 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
            {/* Search Bar (Desktop) - Navigation'ın solunda */}
            {type === 'rich' && (
              <div className={`hidden lg:flex items-center transition-all duration-300 ${
-               searchQuery 
+               localSearchQuery 
                  ? 'w-[200px] lg:w-[280px]' 
                  : 'w-9'
              }`}>
-               {searchQuery ? (
+               {localSearchQuery ? (
                  <button
                    onClick={onSearchClick}
                    className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-colors ${
@@ -120,7 +121,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
                    <span className={`flex-1 text-sm font-medium truncate text-left ${
                      isDarkMode ? 'text-slate-300' : 'text-gray-700'
                    }`}>
-                     {searchQuery}
+                     {localSearchQuery}
                    </span>
                  </button>
                ) : (
@@ -154,7 +155,6 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
                    }`}
                  >
                    <Icon className="w-4 h-4" strokeWidth={2.5} />
-                   <span className="font-bold text-sm">{item.label}</span>
                  </button>
                );
              })}
@@ -174,11 +174,11 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
              {/* Search Bar (Mobile) */}
              {type === 'rich' && (
                <div className={`lg:hidden flex items-center transition-all duration-300 ${
-                 searchQuery 
+                 localSearchQuery 
                    ? 'w-[140px] sm:w-[180px]' 
                    : 'w-9'
                }`}>
-                 {searchQuery ? (
+                 {localSearchQuery ? (
                    <button
                      onClick={onSearchClick}
                      className={`flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg transition-colors ${
@@ -191,7 +191,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
                      <span className={`flex-1 text-xs font-medium truncate text-left ${
                        isDarkMode ? 'text-slate-300' : 'text-gray-700'
                      }`}>
-                       {searchQuery}
+                       {localSearchQuery}
                      </span>
                    </button>
                  ) : (

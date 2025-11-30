@@ -8,18 +8,20 @@ interface RightSidebarProps {
   onWalletOpen?: () => void;
   onGameClick?: (gameId: string) => void;
   onGameCenterClick?: () => void;
+  userCoins?: number;
 }
 
 export const RightSidebar = ({ 
   onProfileClick, 
   onWalletOpen,
   onGameClick,
-  onGameCenterClick 
+  onGameCenterClick,
+  userCoins = 6240
 }: RightSidebarProps) => {
   return (
     <aside className="hidden lg:block w-[30%]">
       <div className="sticky top-[80px] space-y-6">
-        <MiniProfileCard onProfileClick={onProfileClick} />
+        <MiniProfileCard onProfileClick={onProfileClick} coins={userCoins} />
         <TrendingVertical />
         <SuggestedGames onGameClick={(gameId) => {
           if (gameId === 'all') {

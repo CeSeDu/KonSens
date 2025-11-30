@@ -1,5 +1,5 @@
 import React from 'react';
-import { ThumbsUp, MessageCircle, Share2 } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Share2, Edit3 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface PostCardProps {
@@ -18,6 +18,8 @@ interface PostCardProps {
   index: number;
   totalPosts: number;
   onClick: () => void;
+  onEdit?: (post: PostCardProps['post']) => void;
+  showEdit?: boolean;
 }
 
 const getPastelAvatarStyle = (avatarColor: string) => {
@@ -51,7 +53,7 @@ const getCategoryTextColor = (badge: string): string => {
   }
 };
 
-export const PostCard: React.FC<PostCardProps> = ({ post, index, totalPosts, onClick }) => {
+export const PostCard: React.FC<PostCardProps> = ({ post, index, totalPosts, onClick, onEdit, showEdit = false }) => {
   const { isDarkMode } = useTheme();
   const pastel = getPastelAvatarStyle(post.avatarColor);
 
@@ -106,6 +108,26 @@ export const PostCard: React.FC<PostCardProps> = ({ post, index, totalPosts, onC
 
           {/* ACTIONS - Small & Gray */}
           <div className={`flex gap-6 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>
+            {showEdit && onEdit && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(post);
+                }}
+                className="flex items-center gap-1.5 group"
+              >
+                <Edit3 className={`w-4 h-4 transition-colors ${
+                  isDarkMode 
+                    ? 'text-slate-500 group-hover:text-slate-300' 
+                    : 'text-gray-400 group-hover:text-gray-600'
+                }`} strokeWidth={2} />
+                <span className={`text-sm transition-colors ${
+                  isDarkMode 
+                    ? 'text-slate-400 group-hover:text-slate-200' 
+                    : 'text-gray-500 group-hover:text-gray-700'
+                }`}>Düzenle</span>
+              </button>
+            )}
             <button className="flex items-center gap-1.5 group">
               <ThumbsUp className={`w-4 h-4 transition-colors ${
                 isDarkMode 

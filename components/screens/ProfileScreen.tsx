@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Edit3, LogOut, ChevronRight, Award, Trophy, Medal, Star, Target, Compass, Gift, CreditCard, QrCode, ChevronLeft, Lock, Save, Eye, EyeOff, ArrowLeftRight, Clock, Moon, Sun } from 'lucide-react';
+import { Settings, Edit3, LogOut, ChevronRight, Award, Trophy, Medal, Star, Target, Compass, Gift, CreditCard, QrCode, ChevronLeft, Lock, Save, Eye, EyeOff, ArrowLeftRight, Clock, Moon, Sun, Copy, Check, Users, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { WalletModal } from '../wallet/WalletModal';
 import { GlobalHeader } from '../layout/GlobalHeader';
@@ -11,6 +11,9 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { ContributionsScreen } from './ContributionsScreen';
+import { FollowersScreen } from './FollowersScreen';
+import { RightSidebar } from '../layout/RightSidebar';
 const kasifBadge = '/images/b720c92d392edc4e03737e032c4f64b443d69150.png';
 const seyyahBadge = '/images/00b07162d5b8b006019514145544fe2039cee667.png';
 const gezginBadge = '/images/628becb8ed3dbf1dbd57717ef0eda68173b358fa.png';
@@ -207,6 +210,19 @@ interface ProfileScreenProps {
   onLogout?: () => void;
   onBadgesClick?: () => void;
   onGameSelect?: (gameId: string) => void;
+  userId?: number;
+  userData?: {
+    id: number;
+    name: string;
+    username: string;
+    avatar: string;
+    school: string;
+    department: string;
+    followers: number;
+    contributions: number;
+    coins?: number;
+  };
+  onBack?: () => void;
 }
 
 export const ProfileScreen = ({ 
@@ -216,27 +232,97 @@ export const ProfileScreen = ({
   onLogout,
   onBadgesClick,
   onGameSelect,
+  userId,
+  userData,
+  onBack,
 }: ProfileScreenProps = {}) => {
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const isViewingOtherUser = !!userId && !!userData;
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [showAllBadges, setShowAllBadges] = useState(false);
   const [isRotated, setIsRotated] = useState(false);
-  const [formData, setFormData] = useState({
+  const [selectedRole, setSelectedRole] = useState<typeof allRoles[0] | null>(null);
+  const [referralUrl, setReferralUrl] = useState<string | null>(null);
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [accordionValue, setAccordionValue] = useState<string>('');
+  const [showContributions, setShowContributions] = useState(false);
+  const [showFollowers, setShowFollowers] = useState(false);
+  // Initialize formData based on whether viewing another user
+  const getInitialFormData = () => {
+    if (isViewingOtherUser && userData) {
+      return {
+        fullName: userData.name,
+        email: 'user@example.com', // Other users' email is not shown
+        phone: '+90 000 000 0000', // Other users' phone is not shown
+        school: userData.school,
+        department: userData.department,
+        grade: '3. Sınıf',
+        avatar: userData.avatar,
+        followers: userData.followers,
+        contributions: userData.contributions,
+        currentPassword: '',
+        newPassword: '',
+      };
+    }
+    return {
     fullName: 'Fatih Yılmaz',
     email: 'fatih.yilmaz@ogrenci.selcuk.edu.tr',
     phone: '+90 532 123 4567',
     school: 'Selçuk Üniversitesi',
     department: 'Hukuk Fakültesi',
     grade: '3. Sınıf',
+      avatar: 'https://images.unsplash.com/photo-1600178572204-6ac8886aae63?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdCUyMHN0dWRlbnR8ZW58MXx8fHwxNzY0MjU5MzU4fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      followers: 342,
+      contributions: 89,
+      currentPassword: '',
+      newPassword: '',
+    };
+  };
+
+  const [formData, setFormData] = useState(getInitialFormData);
+
+  // Update formData when viewing another user
+  React.useEffect(() => {
+    if (isViewingOtherUser && userData) {
+      setFormData({
+        fullName: userData.name,
+        email: 'user@example.com',
+        phone: '+90 000 000 0000',
+        school: userData.school,
+        department: userData.department,
+        grade: '3. Sınıf',
+        avatar: userData.avatar,
+        followers: userData.followers,
+        contributions: userData.contributions,
     currentPassword: '',
     newPassword: '',
   });
+    } else if (!isViewingOtherUser) {
+      // Reset to default user data
+      setFormData({
+        fullName: 'Fatih Yılmaz',
+        email: 'fatih.yilmaz@ogrenci.selcuk.edu.tr',
+        phone: '+90 532 123 4567',
+        school: 'Selçuk Üniversitesi',
+        department: 'Hukuk Fakültesi',
+        grade: '3. Sınıf',
+        avatar: 'https://images.unsplash.com/photo-1600178572204-6ac8886aae63?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdCUyMHN0dWRlbnR8ZW58MXx8fHwxNzY0MjU5MzU4fDA&ixlib=rb-4.1.0&q=80&w=1080',
+        followers: 342,
+        contributions: 89,
+        currentPassword: '',
+        newPassword: '',
+      });
+    }
+  }, [isViewingOtherUser, userData]);
   
-  // User Stats (Demo Data)
-  const userCoins = 6240;
+  // User Stats (Demo Data) - Different coins for different users
+  const userCoins = isViewingOtherUser && userData?.coins 
+    ? userData.coins 
+    : 6240; // Default user coins
   const roleData = getUserRole(userCoins);
   const progressPercentage = roleData.nextLimit 
     ? (roleData.current / roleData.nextLimit) * 100 
@@ -246,6 +332,15 @@ export const ProfileScreen = ({
   const unlockedBadgeIds = [1, 2, 3]; // Yeni Gelen, Seyyah, Gezgin unlocked
   const unlockedBadges = ALL_BADGES.filter(b => b.unlocked);
   const lockedBadges = ALL_BADGES.filter(b => !b.unlocked);
+
+  // Role descriptions
+  const roleDescriptions: Record<string, string> = {
+    "Yeni Gelen": "KonyaGenç'e hoş geldin! Bu senin ilk adımın. Uygulamayı keşfetmeye başladığın bu aşamada, her aktivite ile GençCoin kazanabilirsin. İçerik üret, yorum yap, oyunlar oyna ve topluluğa katıl. 500 GençCoin'e ulaştığında Seyyah rütbesine terfi edeceksin!",
+    "Seyyah": "Yolculuğa başladın! 500 GençCoin topladın ve artık %20 daha fazla coin kazanıyorsun. Konya'nın farklı köşelerini keşfetmeye devam et. Wiki'ye bilgi ekle, post paylaş, etkinliklere katıl. 2.500 GençCoin'e ulaştığında Gezgin olacaksın!",
+    "Gezgin": "Aktif bir KonyaGenç kullanıcısısın! 2.500 GençCoin ile gezginler arasındasın ve artık %50 daha fazla coin kazanıyorsun. Topluluğa değer katmaya devam et. Kaliteli içerikler üret, diğer kullanıcılara yardımcı ol. 10.000 GençCoin'e ulaştığında Kaşif Meraklısı olacaksın!",
+    "Kaşif Meraklısı": "Konya'nın derinliklerini keşfediyorsun! 10.000 GençCoin ile kaşiflerdensin ve artık 2 kat daha fazla coin kazanıyorsun. Wiki'ye önemli bilgiler ekle, topluluğa liderlik et, etkinlikler düzenle. 50.000 GençCoin'e ulaştığında Konya Bilgesi olacaksın!",
+    "Konya Bilgesi": "Konya'nın her yerini biliyorsun! 50.000 GençCoin ile bilgeler arasındasın ve artık 2.5 kat daha fazla coin kazanıyorsun. Bu en yüksek rütbe! Sen KonyaGenç'in en deneyimli ve değerli kullanıcılarındansın. Topluluğa rehberlik etmeye devam et!"
+  };
 
   // All roles data
   const allRoles = [
@@ -303,42 +398,73 @@ export const ProfileScreen = ({
     }
   }, [roles, roleData.title]);
 
-  // Referral Share Handler (Web Share API)
-  const handleInvite = async () => {
+  // Referral Link Generation Handler
+  const handleGenerateLink = async () => {
+    if (referralUrl) {
+      // If link already exists, copy it
+      await handleCopyLink();
+      return;
+    }
+
+    // Generate link
+    setIsGeneratingLink(true);
     const referralCode = "FATIH1453"; // Kullanıcıya özel kod
-    const shareData = {
-      title: 'Konya Genç WikiSözlük',
-      text: `Seni Konya Genç'e bekliyorum! Kodumu kullan, 100 Coin kazan: ${referralCode}`,
-      url: `https://konyagenc.com/register?ref=${referralCode}`
-    };
+    const generatedUrl = `https://konyagenc.com/register?ref=${referralCode}`;
+    
+    // Simulate link generation delay with animation
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    setReferralUrl(generatedUrl);
+    setIsGeneratingLink(false);
+    toast.success('Link oluşturuldu!');
+  };
+
+  // Copy Link Handler
+  const handleCopyLink = async () => {
+    if (!referralUrl) return;
 
     try {
-      // Check if Web Share API is supported and allowed
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-        await navigator.share(shareData);
-        toast.success('Davet linki paylaşıldı!');
-        console.log('✅ Referral link shared successfully');
-      } else {
-        // Fallback: Copy to clipboard
-        await navigator.clipboard.writeText(shareData.url);
-        toast.success('Davet linki kopyalandı!');
-        console.log('📋 Referral link copied to clipboard');
-      }
-    } catch (err: any) {
-      // Only show error if it's not a user cancellation
-      if (err.name !== 'AbortError') {
-        console.error('❌ Share failed:', err);
-        // Fallback to copy on any error
-        try {
-          await navigator.clipboard.writeText(shareData.url);
-          toast.success('Davet linki kopyalandı!');
-        } catch (clipboardErr) {
-          console.error('❌ Clipboard copy failed:', clipboardErr);
-          toast.error('Paylaşım başarısız oldu');
-        }
-      }
+      await navigator.clipboard.writeText(referralUrl);
+      setIsCopied(true);
+      toast.success('Link kopyalandı!');
+      
+      // Reset copied state after 2 seconds
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 2000);
+    } catch (err) {
+      console.error('❌ Clipboard copy failed:', err);
+      toast.error('Kopyalama başarısız oldu');
     }
   };
+
+  // Show Contributions Screen
+  if (showContributions) {
+    return (
+      <ContributionsScreen
+        onBack={() => setShowContributions(false)}
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+        onGameCenterClick={onGameCenterClick}
+        onGameSelect={onGameSelect}
+        onWalletOpen={() => setIsWalletModalOpen(true)}
+      />
+    );
+  }
+
+  // Show Followers Screen
+  if (showFollowers) {
+    return (
+      <FollowersScreen
+        onBack={() => setShowFollowers(false)}
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+        onGameCenterClick={onGameCenterClick}
+        onGameSelect={onGameSelect}
+        onWalletOpen={() => setIsWalletModalOpen(true)}
+      />
+    );
+  }
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-[#0f0e17]' : 'bg-[#f2f3f7]'} pb-20 lg:pb-6 transition-colors`}>
@@ -357,8 +483,20 @@ export const ProfileScreen = ({
 
       {/* Main Container */}
       <div className="max-w-[1200px] mx-auto pt-[120px] lg:pt-[84px] mt-0 px-0 lg:px-6">
-          
-          <main className="w-full px-0">
+        <div className="flex gap-6">
+          <main className="w-full lg:w-[70%] px-0">
+            {/* Back Button for Other User Profile */}
+            {isViewingOtherUser && onBack && (
+              <div className="mb-6 px-4 lg:px-0">
+                <button
+                  onClick={onBack}
+                  className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-400 hover:text-white' : 'text-[#8279a5] hover:text-[#19142e]'} transition-colors`}
+                >
+                  <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
+                  <span className="font-bold">Geri</span>
+                </button>
+              </div>
+            )}
         
         {/* 1. HERO SECTION - Banner + Avatar */}
         <div className="relative">
@@ -389,8 +527,8 @@ export const ProfileScreen = ({
                 isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'
               }`}>
                 <ImageWithFallback 
-                  src="https://images.unsplash.com/photo-1600178572204-6ac8886aae63?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdCUyMHN0dWRlbnR8ZW58MXx8fHwxNzY0MjU5MzU4fDA&ixlib=rb-4.1.0&q=80&w=1080"
-                  alt="Fatih Yılmaz"
+                  src={formData.avatar}
+                  alt={formData.fullName}
                   className="w-full h-full rounded-full object-cover"
                 />
               </div>
@@ -407,12 +545,32 @@ export const ProfileScreen = ({
         <div className="pt-20 pb-6 px-4 lg:px-8">
           <div className="flex flex-col lg:flex-row lg:items-stretch gap-6">
             
-            {/* Left Column: User Info + Roles + Referral (Desktop) - 60% */}
-            <div className="flex flex-col gap-6 lg:w-[60%]">
+            {/* Left Column: User Info + Roles + Referral (Desktop) - 60% or 100% if viewing other user */}
+            <div className={`flex flex-col gap-6 ${isViewingOtherUser ? 'lg:w-full' : 'lg:w-[60%]'}`}>
               {/* User Info */}
               <div className="text-center lg:text-left">
-                <h1 className={`text-3xl font-black ${isDarkMode ? 'text-white' : 'text-[#19142e]'} mb-1`}>Fatih Yılmaz</h1>
-                <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'} font-semibold`}>Selçuk Üni. - Hukuk</p>
+                <h1 className={`text-3xl font-black ${isDarkMode ? 'text-white' : 'text-[#19142e]'} mb-1 break-words`}>{formData.fullName}</h1>
+                <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'} font-semibold mb-4`}>{formData.school.split(' ')[0]} Üni. - {formData.department.split(' ')[0]}</p>
+                
+                {/* Stats Row */}
+                <div className="flex items-center gap-4 justify-center lg:justify-start">
+                  <button
+                    onClick={() => setShowFollowers(true)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer ${isDarkMode ? 'bg-slate-800/50 hover:bg-slate-800' : 'bg-[#f2f3f7] hover:bg-[#e5e7eb]'}`}
+                  >
+                    <Users className="w-4 h-4 text-[#5852c4]" strokeWidth={2.5} />
+                    <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-[#19142e]'}`}>{formData.followers}</span>
+                    <span className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'}`}>Takipçi</span>
+                  </button>
+                  <button
+                    onClick={() => setShowContributions(true)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer ${isDarkMode ? 'bg-slate-800/50 hover:bg-slate-800' : 'bg-[#f2f3f7] hover:bg-[#e5e7eb]'}`}
+                  >
+                    <TrendingUp className="w-4 h-4 text-[#5852c4]" strokeWidth={2.5} />
+                    <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-[#19142e]'}`}>{formData.contributions}</span>
+                    <span className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'}`}>Katkı</span>
+                  </button>
+                </div>
               </div>
 
               {/* ROLE & MULTIPLIER CAROUSEL - Desktop Only */}
@@ -441,7 +599,8 @@ export const ProfileScreen = ({
                         <div 
                           key={index}
                           data-active={isCurrentRole}
-                          className={`flex-shrink-0 w-[280px] rounded-xl p-4 transition-all duration-300 relative
+                          onClick={() => setSelectedRole(role)}
+                          className={`flex-shrink-0 w-[280px] rounded-xl p-4 transition-all duration-300 relative cursor-pointer hover:scale-[1.02] active:scale-[0.98]
                             ${isCurrentRole 
                               ? 'border-2 border-[#5852c4] shadow-[0_8px_24px_rgba(88,82,196,0.25)]' 
                               : isPastRole 
@@ -488,7 +647,7 @@ export const ProfileScreen = ({
                             }`}>
                               <div 
                                 className={`h-full rounded-full transition-all duration-700 ${
-                                  isCurrentRole 
+                                  (isCurrentRole || isPastRole)
                                     ? 'bg-gradient-to-r from-[#5852c4] via-[#7c3aed] to-[#06b6d4]' 
                                     : 'bg-gray-400'
                                 }`}
@@ -516,7 +675,8 @@ export const ProfileScreen = ({
                 </div>
               </div>
 
-              {/* REFERRAL WIDGET - Desktop Only (Below Role Carousel, Full Width) */}
+              {/* REFERRAL WIDGET - Desktop Only (Below Role Carousel, Full Width) - Only show for own profile */}
+              {!isViewingOtherUser && (
               <div className="hidden lg:block">
                 <div 
                   className="rounded-xl p-5 border-2 border-dashed border-[#5852c4]/40 shadow-sm relative overflow-hidden"
@@ -544,25 +704,53 @@ export const ProfileScreen = ({
 
                     {/* Right: CTA Button */}
                     <button 
-                      onClick={handleInvite}
-                      className="flex-shrink-0 px-5 py-2.5 rounded-full bg-[#5852c4] hover:bg-[#6c5ce7] active:scale-95 transition-all shadow-lg shadow-[#5852c4]/30"
+                      onClick={handleGenerateLink}
+                      disabled={isGeneratingLink}
+                      className="flex-shrink-0 px-5 py-2.5 rounded-full bg-[#5852c4] hover:bg-[#6c5ce7] active:scale-95 transition-all shadow-lg shadow-[#5852c4]/30 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                     >
-                      <span className="text-sm font-black text-white whitespace-nowrap">Link Paylaş</span>
+                      {isGeneratingLink ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                          />
+                          <span className="text-sm font-black text-white whitespace-nowrap">Link oluşturuluyor...</span>
+                        </>
+                      ) : referralUrl ? (
+                        <>
+                          {isCopied ? (
+                            <>
+                              <Check className="w-4 h-4 text-white" strokeWidth={2.5} />
+                              <span className="text-sm font-black text-white whitespace-nowrap">Kopyalandı!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-4 h-4 text-white" strokeWidth={2.5} />
+                              <span className="text-sm font-black text-white whitespace-nowrap">Kopyala</span>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-sm font-black text-white whitespace-nowrap">Linki Paylaş</span>
+                      )}
                     </button>
                   </div>
                 </div>
               </div>
+              )}
             </div>
 
-            {/* Right: Genç Kültür Kart - 40% */}
+            {/* Right: Genç Kültür Kart - 40% - Only show for own profile */}
+            {!isViewingOtherUser && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="relative w-full lg:w-[40%] flex-shrink-0 lg:flex lg:flex-col"
+              className="relative w-full lg:w-auto flex-shrink-0"
             >
               <TooltipProvider>
-                {/* Card Container */}
-                <div className="relative w-full mx-auto lg:max-w-none aspect-[1.586/1] lg:aspect-auto lg:h-full rounded-xl overflow-hidden shadow-[0_20px_60px_rgba(25,20,46,0.25)]">
+                {/* Card Container - Horizontal Card (248x334) */}
+                <div className="relative w-[334px] h-[248px] mx-auto lg:mx-0 rounded-xl overflow-hidden shadow-[0_20px_60px_rgba(25,20,46,0.25)]">
         
                   {/* Violet Gradient Background with Depth */}
                   <div className="absolute inset-0 violet-gradient" />
@@ -595,19 +783,38 @@ export const ProfileScreen = ({
                   {/* Subtle inner glow effect (Cuberto signature) */}
                   <div className="absolute inset-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]" />
 
-                  {/* Content Layer */}
-                  <div className="relative z-10 h-full p-6 flex flex-col justify-between text-[#f4f4f4]">
+                  {/* Content Layer - Horizontal Layout */}
+                  <div className="relative z-10 h-full p-6 flex items-center justify-between text-[#f4f4f4]">
                     
-                    {/* Top Row: Logos & Action Buttons */}
-                    <div className="flex items-start justify-between">
+                    {/* Left Side: Logo & User Info */}
+                    <div className="flex-1 flex flex-col justify-between h-full">
+                      {/* Top: Logo */}
                       <div>
                         <div className="text-xs font-bold tracking-wider opacity-95">GENÇ KÜLTÜR KART</div>
                         <div className="text-[10px] font-medium text-white/70 mt-0.5">Konya Büyükşehir</div>
                       </div>
-                      
+
+                      {/* Middle: Balance */}
+                      <div>
+                        <div className="text-sm font-medium text-white/70 mb-1">Toplam Bakiye</div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-4xl font-black tracking-tight">{userCoins.toLocaleString()}</span>
+                          <span className="text-lg font-bold text-white/90">GençCoin</span>
+                        </div>
+                      </div>
+
+                      {/* Bottom: User Info */}
+                      <div>
+                        <div className="text-xs font-bold tracking-wide break-words">{formData.fullName}</div>
+                        <div className="text-[10px] text-white/60 mt-1 font-mono tracking-wider">**** **** **** 1453</div>
+                      </div>
+                    </div>
+
+                    {/* Right Side: Action Buttons & QR Code */}
+                    <div className="flex flex-col items-end justify-between h-full">
                       {/* Action Buttons with Tooltips */}
                       <div className="flex items-center gap-2">
-                        {/* Transfer Button */}
+                        {/* Transfer/Contact Button */}
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button 
@@ -620,7 +827,7 @@ export const ProfileScreen = ({
                               <ArrowLeftRight className="w-5 h-5 text-white/90" strokeWidth={2} />
                             </button>
                           </TooltipTrigger>
-                          <TooltipContent>
+                          <TooltipContent side="bottom" sideOffset={8}>
                             <p>Coin Aktar</p>
                           </TooltipContent>
                         </Tooltip>
@@ -638,27 +845,10 @@ export const ProfileScreen = ({
                               <Clock className="w-5 h-5 text-white/90" strokeWidth={2} />
                             </button>
                           </TooltipTrigger>
-                          <TooltipContent>
+                          <TooltipContent side="bottom" sideOffset={8}>
                             <p>Geçmiş</p>
                           </TooltipContent>
                         </Tooltip>
-                      </div>
-                    </div>
-
-                    {/* Middle: Balance */}
-                    <div className="mt-auto mb-4">
-                      <div className="text-sm font-medium text-white/70 mb-1">Toplam Bakiye</div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-black tracking-tight">{userCoins.toLocaleString()}</span>
-                        <span className="text-lg font-bold text-white/90">GençCoin</span>
-                      </div>
-                    </div>
-
-                    {/* Bottom: User Info & Card Details */}
-                    <div className="flex items-end justify-between border-t border-white/15 pt-3">
-                      <div>
-                        <div className="text-xs font-bold tracking-wide">Fatih Yılmaz</div>
-                        <div className="text-[10px] text-white/60 mt-1 font-mono tracking-wider">**** **** **** 1453</div>
                       </div>
                       
                       {/* QR Code Icon */}
@@ -675,6 +865,7 @@ export const ProfileScreen = ({
                 </div>
               </TooltipProvider>
             </motion.div>
+            )}
 
           </div>
         </div>
@@ -704,7 +895,8 @@ export const ProfileScreen = ({
                 <div key={index} className="flex-shrink-0 w-[calc(100vw-56px)] snap-center">
                   <div 
                     data-active={isCurrentRole}
-                    className={`rounded-2xl p-5 transition-all duration-300 relative
+                    onClick={() => setSelectedRole(role)}
+                    className={`rounded-2xl p-5 transition-all duration-300 relative cursor-pointer hover:scale-[1.01] active:scale-[0.99]
                       ${isCurrentRole 
                         ? 'border-[3px] border-[#5852c4] shadow-[0_8px_24px_rgba(88,82,196,0.2)]' 
                         : isPastRole 
@@ -751,7 +943,7 @@ export const ProfileScreen = ({
                     }`}>
                       <div 
                         className={`h-full rounded-full transition-all duration-700 ${
-                          isCurrentRole 
+                          (isCurrentRole || isPastRole)
                             ? 'bg-gradient-to-r from-[#5852c4] via-[#7c3aed] to-[#06b6d4]' 
                             : 'bg-gray-400'
                         }`}
@@ -810,10 +1002,36 @@ export const ProfileScreen = ({
 
               {/* Bottom Row: CTA Button (Full Width) */}
               <button 
-                onClick={handleInvite}
-                className="w-full px-5 py-3 rounded-xl bg-[#5852c4] hover:bg-[#6c5ce7] active:scale-95 transition-all shadow-lg shadow-[#5852c4]/30"
+                onClick={handleGenerateLink}
+                disabled={isGeneratingLink}
+                className="w-full px-5 py-3 rounded-xl bg-[#5852c4] hover:bg-[#6c5ce7] active:scale-95 transition-all shadow-lg shadow-[#5852c4]/30 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                <span className="font-black text-white">Link Paylaş</span>
+                {isGeneratingLink ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                    />
+                    <span className="font-black text-white">Link oluşturuluyor...</span>
+                  </>
+                ) : referralUrl ? (
+                  <>
+                    {isCopied ? (
+                      <>
+                        <Check className="w-4 h-4 text-white" strokeWidth={2.5} />
+                        <span className="font-black text-white">Kopyalandı!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 text-white" strokeWidth={2.5} />
+                        <span className="font-black text-white">Kopyala</span>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <span className="font-black text-white">Linki Paylaş</span>
+                )}
               </button>
             </div>
           </div>
@@ -923,8 +1141,9 @@ export const ProfileScreen = ({
               </div>
             </button>
 
-            {/* Accordion for Personal Details */}
-            <Accordion type="single" collapsible>
+            {/* Accordion for Personal Details - Only show for own profile */}
+            {!isViewingOtherUser && (
+            <Accordion type="single" collapsible value={accordionValue} onValueChange={setAccordionValue}>
               <AccordionItem value="settings" className={`border-b ${isDarkMode ? 'border-slate-700' : 'border-[#f2f3f7]'}`}>
                 <AccordionTrigger className={`px-5 py-4 transition-colors ${
                   isDarkMode 
@@ -938,11 +1157,26 @@ export const ProfileScreen = ({
                     <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-[#19142e]'}`}>Kişisel Detaylar</span>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className={`px-5 pb-6 pt-2 ${isDarkMode ? 'bg-[#1a1a2e]' : ''}`}>
-                  <div className="space-y-4">
+                <AccordionContent className={`px-5 pb-6 pt-2 ${isDarkMode ? 'bg-[#1a1a2e]' : ''} overflow-visible`}>
+                  <div className="space-y-4 min-h-[400px]">
                     {/* Personal Info Section */}
                     <div className="space-y-3">
                       <h3 className={`font-bold text-sm ${isDarkMode ? 'text-white' : 'text-[#19142e]'}`}>Kişisel Bilgiler</h3>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="avatar" className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'}`}>Profil Fotoğrafı URL</Label>
+                        <Input
+                          id="avatar"
+                          type="url"
+                          value={formData.avatar}
+                          onChange={(e) => setFormData({...formData, avatar: e.target.value})}
+                          onFocus={(e) => {
+                            e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                          }}
+                          className={`rounded-lg min-h-[40px] ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
+                          placeholder="https://..."
+                        />
+                      </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="fullName" className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'}`}>Ad Soyad</Label>
@@ -950,7 +1184,10 @@ export const ProfileScreen = ({
                           id="fullName"
                           value={formData.fullName}
                           onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                          className={`rounded-lg ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
+                          onFocus={(e) => {
+                            e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                          }}
+                          className={`rounded-lg min-h-[40px] ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
                         />
                       </div>
 
@@ -961,7 +1198,10 @@ export const ProfileScreen = ({
                           type="email"
                           value={formData.email}
                           onChange={(e) => setFormData({...formData, email: e.target.value})}
-                          className={`rounded-lg ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
+                          onFocus={(e) => {
+                            e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                          }}
+                          className={`rounded-lg min-h-[40px] ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
                         />
                       </div>
 
@@ -972,7 +1212,10 @@ export const ProfileScreen = ({
                           type="tel"
                           value={formData.phone}
                           onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                          className={`rounded-lg ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
+                          onFocus={(e) => {
+                            e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                          }}
+                          className={`rounded-lg min-h-[40px] ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
                         />
                       </div>
                     </div>
@@ -987,7 +1230,10 @@ export const ProfileScreen = ({
                           id="school"
                           value={formData.school}
                           onChange={(e) => setFormData({...formData, school: e.target.value})}
-                          className={`rounded-lg ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
+                          onFocus={(e) => {
+                            e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                          }}
+                          className={`rounded-lg min-h-[40px] ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
                         />
                       </div>
 
@@ -997,7 +1243,10 @@ export const ProfileScreen = ({
                           id="department"
                           value={formData.department}
                           onChange={(e) => setFormData({...formData, department: e.target.value})}
-                          className={`rounded-lg ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
+                          onFocus={(e) => {
+                            e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                          }}
+                          className={`rounded-lg min-h-[40px] ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
                         />
                       </div>
 
@@ -1007,7 +1256,10 @@ export const ProfileScreen = ({
                           id="grade"
                           value={formData.grade}
                           onChange={(e) => setFormData({...formData, grade: e.target.value})}
-                          className={`rounded-lg ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
+                          onFocus={(e) => {
+                            e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                          }}
+                          className={`rounded-lg min-h-[40px] ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
                         />
                       </div>
                     </div>
@@ -1024,7 +1276,10 @@ export const ProfileScreen = ({
                             type={showPassword ? "text" : "password"}
                             value={formData.currentPassword}
                             onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
-                            className={`rounded-lg pr-10 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
+                            onFocus={(e) => {
+                              e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }}
+                            className={`rounded-lg pr-10 min-h-[40px] ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
                             placeholder="••••••••"
                           />
                           <button
@@ -1045,7 +1300,10 @@ export const ProfileScreen = ({
                             type={showNewPassword ? "text" : "password"}
                             value={formData.newPassword}
                             onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
-                            className={`rounded-lg pr-10 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
+                            onFocus={(e) => {
+                              e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }}
+                            className={`rounded-lg pr-10 min-h-[40px] ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-[#ededff]'}`}
                             placeholder="••••••••"
                           />
                           <button
@@ -1063,6 +1321,7 @@ export const ProfileScreen = ({
                     <Button
                       onClick={() => {
                         toast.success('Bilgileriniz başarıyla güncellendi!');
+                        setAccordionValue(''); // Close accordion after save
                       }}
                       className="w-full mt-4 bg-[#5852c4] hover:bg-[#4842a4] text-white rounded-lg"
                     >
@@ -1073,8 +1332,10 @@ export const ProfileScreen = ({
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+            )}
 
-            {/* Logout (Destructive - Red) */}
+            {/* Logout (Destructive - Red) - Only show for own profile */}
+            {!isViewingOtherUser && (
             <button 
               onClick={onLogout}
               className={`w-full px-5 py-4 flex items-center justify-between transition-colors group ${
@@ -1091,11 +1352,27 @@ export const ProfileScreen = ({
               </div>
               <ChevronRight className="w-5 h-5 text-red-400" strokeWidth={2.5} />
             </button>
+            )}
           </div>
         </div>
 
           </main>
 
+          {/* RIGHT COLUMN - Sticky Sidebar (30%) - Desktop Only */}
+          <RightSidebar 
+            onProfileClick={() => {
+              if (isViewingOtherUser && onBack) {
+                onBack();
+              } else {
+                onTabChange?.('profile');
+              }
+            }}
+            onWalletOpen={() => setIsWalletModalOpen(true)}
+            onGameClick={onGameSelect}
+            onGameCenterClick={onGameCenterClick}
+            userCoins={userCoins}
+          />
+        </div>
       </div>
 
       {/* Wallet Modal */}
@@ -1343,6 +1620,210 @@ export const ProfileScreen = ({
               <div className="px-6 pb-6">
                 <button
                   onClick={() => setShowAllBadges(false)}
+                  className="w-full py-3 rounded-xl bg-[#5852c4] hover:bg-[#6c5ce7] active:scale-95 transition-all shadow-lg shadow-[#5852c4]/30"
+                >
+                  <span className="text-sm font-black text-white">Kapat</span>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Role Detail Modal */}
+      <AnimatePresence>
+        {selectedRole && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center px-5"
+            onClick={() => setSelectedRole(null)}
+          >
+            {/* Backdrop Blur */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
+
+            {/* Modal Card */}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className={`relative rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden ${
+                isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'
+              }`}
+            >
+              {/* Header Gradient */}
+              <div className="bg-gradient-to-br from-[#5852c4] to-[#8B5CF6] px-6 py-6 text-center relative overflow-hidden">
+                {/* Role Card (Same Design) */}
+                <div className="max-w-sm mx-auto">
+                  {(() => {
+                    const isCurrentRole = selectedRole.title === roleData.title;
+                    const isPastRole = userCoins >= (selectedRole.limit || Infinity);
+                    const isFutureRole = userCoins < selectedRole.minCoins;
+                    
+                    // Calculate progress for selected role
+                    let roleProgress = 0;
+                    if (isCurrentRole && selectedRole.limit) {
+                      const range = selectedRole.limit - selectedRole.minCoins;
+                      roleProgress = range > 0 ? Math.min(100, Math.max(0, ((userCoins - selectedRole.minCoins) / range) * 100)) : 0;
+                    } else if (isPastRole) {
+                      roleProgress = 100;
+                    }
+
+                    return (
+                      <div 
+                        className={`rounded-xl p-5 transition-all duration-300 relative
+                          ${isCurrentRole 
+                            ? 'border-2 border-white/50 shadow-[0_8px_24px_rgba(255,255,255,0.2)]' 
+                            : 'border border-white/30 opacity-80'
+                          }`}
+                        style={{ 
+                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          backdropFilter: 'blur(10px)'
+                        }}
+                      >
+                        {/* Lock Icon for Future Roles */}
+                        {isFutureRole && (
+                          <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-md">
+                            <Lock className="w-4 h-4 text-white" strokeWidth={2.5} />
+                          </div>
+                        )}
+
+                        {/* Header: Role Name + Multiplier */}
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Compass className="w-5 h-5 text-white" strokeWidth={2.5} />
+                            <span className="font-black text-white text-lg">
+                              {selectedRole.title}
+                            </span>
+                          </div>
+
+                          {/* Multiplier Badge */}
+                          {!isFutureRole && (
+                            <div className="px-3 py-1 rounded-full bg-white/30 backdrop-blur-sm">
+                              <span className="text-white font-black text-xs">{selectedRole.multiplier}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="h-2.5 rounded-full overflow-hidden shadow-inner mb-2 bg-white/20">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-700 ${
+                              (isCurrentRole || isPastRole)
+                                ? 'bg-gradient-to-r from-[#5852c4] via-[#7c3aed] to-[#06b6d4]'
+                                : 'bg-white/30'
+                            }`}
+                            style={{ width: `${roleProgress}%` }}
+                          />
+                        </div>
+
+                        {/* Stats Row */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-bold text-white/90">
+                            {isCurrentRole ? userCoins.toLocaleString() : selectedRole.minCoins.toLocaleString()} / {selectedRole.limit?.toLocaleString() || '∞'}
+                          </span>
+                          <span className="text-sm font-bold text-white/90">
+                            %{Math.round(roleProgress)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="px-6 py-6 space-y-4">
+                {/* Description */}
+                <div>
+                  <h3 className={`text-xs font-black uppercase tracking-wide mb-3 ${
+                    isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'
+                  }`}>
+                    Rol Açıklaması
+                  </h3>
+                  <p className={`text-sm leading-relaxed font-semibold ${
+                    isDarkMode ? 'text-slate-300' : 'text-[#19142e]'
+                  }`}>
+                    {roleDescriptions[selectedRole.title] || 'Bu rol hakkında bilgi bulunmuyor.'}
+                  </p>
+                </div>
+
+                {/* Role Benefits */}
+                <div className={`pt-4 border-t ${
+                  isDarkMode ? 'border-slate-700' : 'border-[#f2f3f7]'
+                }`}>
+                  <h3 className={`text-xs font-black uppercase tracking-wide mb-3 ${
+                    isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'
+                  }`}>
+                    Rol Avantajları
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2">
+                      <div className={`w-1.5 h-1.5 rounded-full mt-2 ${
+                        isDarkMode ? 'bg-[#5852c4]' : 'bg-[#5852c4]'
+                      }`} />
+                      <p className={`text-sm font-semibold ${
+                        isDarkMode ? 'text-slate-300' : 'text-[#19142e]'
+                      }`}>
+                        <span className="font-black text-[#5852c4]">{selectedRole.multiplier}</span> coin çarpanı ile daha fazla GençCoin kazanırsın
+                      </p>
+                    </div>
+                    {(() => {
+                      const isCurrentRole = selectedRole.title === roleData.title;
+                      const isPastRole = userCoins >= (selectedRole.limit || Infinity);
+                      const isFutureRole = userCoins < selectedRole.minCoins;
+                      const nextRole = allRoles.find(r => r.minCoins === selectedRole.limit);
+                      
+                      if (selectedRole.limit && !isPastRole) {
+                        const coinsNeeded = isCurrentRole 
+                          ? selectedRole.limit - userCoins
+                          : selectedRole.limit - selectedRole.minCoins;
+                        return (
+                          <div className="flex items-start gap-2">
+                            <div className={`w-1.5 h-1.5 rounded-full mt-2 ${
+                              isDarkMode ? 'bg-[#5852c4]' : 'bg-[#5852c4]'
+                            }`} />
+                            <p className={`text-sm font-semibold ${
+                              isDarkMode ? 'text-slate-300' : 'text-[#19142e]'
+                            }`}>
+                              {isCurrentRole ? (
+                                <>Bir sonraki role ({nextRole?.title || 'Sonraki Rol'}) ulaşmak için <span className="font-black text-[#5852c4]">{coinsNeeded.toLocaleString()}</span> GençCoin daha kazanmalısın</>
+                              ) : (
+                                <>Bu role ulaşmak için <span className="font-black text-[#5852c4]">{(selectedRole.minCoins - userCoins).toLocaleString()}</span> GençCoin daha kazanmalısın</>
+                              )}
+                            </p>
+                          </div>
+                        );
+                      }
+                      if (!selectedRole.limit || isPastRole) {
+                        return (
+                          <div className="flex items-start gap-2">
+                            <div className={`w-1.5 h-1.5 rounded-full mt-2 ${
+                              isDarkMode ? 'bg-[#5852c4]' : 'bg-[#5852c4]'
+                            }`} />
+                            <p className={`text-sm font-semibold ${
+                              isDarkMode ? 'text-slate-300' : 'text-[#19142e]'
+                            }`}>
+                              {!selectedRole.limit 
+                                ? 'Bu en yüksek rol! Artık maksimum coin çarpanına sahipsin'
+                                : 'Bu rolü tamamladın! Artık bir sonraki role geçebilirsin'
+                              }
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <div className="px-6 pb-6">
+                <button
+                  onClick={() => setSelectedRole(null)}
                   className="w-full py-3 rounded-xl bg-[#5852c4] hover:bg-[#6c5ce7] active:scale-95 transition-all shadow-lg shadow-[#5852c4]/30"
                 >
                   <span className="text-sm font-black text-white">Kapat</span>
