@@ -3,6 +3,7 @@ import { GraduationCap, Map, Camera, CheckCircle2, Trophy, Sparkles, Compass } f
 import { motion } from 'motion/react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useCoins } from '../../contexts/CoinContext';
+import { CoinActionType } from '../../services/CoinRewardService';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { toast } from 'sonner';
 import { GlobalHeader } from '../layout/GlobalHeader';
@@ -69,7 +70,7 @@ export const GameCenterScreen = ({
   onWalletOpen
 }: GameCenterScreenProps) => {
   const { isDarkMode } = useTheme();
-  const { addCoins, coins, coinAnimationTrigger } = useCoins();
+  const { rewardAction, coins, coinAnimationTrigger, getUserRole, getRoleMultiplier } = useCoins();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
   // Scroll to top when component mounts
@@ -154,7 +155,10 @@ export const GameCenterScreen = ({
       setPreviousCoins(coins);
       setSurveyCompleted(true);
       setShowCoinAnimation(true);
-      addCoins(dailySurvey.reward);
+      const result = rewardAction(CoinActionType.GAME_SURVEY_COMPLETE);
+      if (result.success) {
+        toast.success(`+${result.reward} GençCoin kazandınız! (${getUserRole()} - ${getRoleMultiplier()}x çarpan)`);
+      }
     }
   };
 
@@ -171,7 +175,6 @@ export const GameCenterScreen = ({
         <GlobalHeader 
           type="rich"
           onWalletClick={() => setIsWalletModalOpen(true)}
-          coinBalance={coins.toLocaleString()}
           onSearchClick={() => console.log('🔍 Search clicked')}
           onFilterClick={() => console.log('🎯 Filter clicked')}
           activeTab={activeTab}
