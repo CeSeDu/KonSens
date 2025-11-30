@@ -23,7 +23,7 @@ export const PageLayout = ({
       <div className="flex gap-6">
         
         {/* LEFT COLUMN - Main Content (70%) */}
-        <main className="w-full lg:w-[70%]">
+        <main className="w-full lg:flex-[0_0_70%] lg:max-w-[70%]">
           {children}
         </main>
 
