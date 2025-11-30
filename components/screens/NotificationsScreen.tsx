@@ -17,18 +17,20 @@ import {
   Users,
   Edit3,
   Clock,
-  Zap
+  Zap,
+  BookOpen
 } from 'lucide-react';
 import { GlobalHeader } from '../layout/GlobalHeader';
 import { WalletModal } from '../wallet/WalletModal';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { MOCK_COMMENTS } from '../../data/mockComments';
+import { MOCK_USERS, getUserDisplayName } from '../../data/mockUsers';
 import { MiniProfileCard } from '../sidebar/MiniProfileCard';
 import { TrendingVertical } from '../sidebar/TrendingVertical';
 import { SuggestedGames } from '../sidebar/SuggestedGames';
 
-// Mock Posts Data - For navigation
+// Mock Posts Data - For navigation (all posts from FeedScreen)
 const MOCK_POSTS = [
   {
     id: '1',
@@ -57,6 +59,71 @@ const MOCK_POSTS = [
     avatarColor: 'bg-amber-500'
   },
   {
+    id: '3',
+    title: 'Bosna Hersek Mah. Kiralık Ev Arkadaşı',
+    category: 'barinma',
+    user: 'Mehmet T.',
+    role: 'Seyyah',
+    badge: 'Barınma',
+    content: '3+1 evimize 3. arkadaşı arıyoruz. Kampüse yürüme mesafesinde, tramvay durağına 5 dk. Kira kişi başı 3500 TL.',
+    upvotes: 12,
+    comments: 5,
+    timeAgo: '1g önce',
+    avatarColor: 'bg-emerald-600'
+  },
+  {
+    id: '4',
+    title: 'Haftasonu Bisiklet Turu',
+    category: 'sosyal',
+    user: 'Bisiklet Topluluğu',
+    role: 'Yeni Gelen',
+    badge: 'Sosyal',
+    content: 'Bu Pazar Ecdad Parkı\'na sürüyoruz. Katılmak isteyen herkesi bekleriz. Kask zorunludur! Saat 10:00\'da kampüs önünden hareket.',
+    upvotes: 45,
+    comments: 18,
+    timeAgo: '2g önce',
+    avatarColor: 'bg-purple-600'
+  },
+  {
+    id: '5',
+    title: 'Vize Haftası Çalışma Grubu',
+    category: 'akademik',
+    user: 'Elif Yılmaz',
+    role: 'Gezgin',
+    badge: 'Akademik',
+    content: 'Matematik ve Fizik dersleri için grup çalışması yapacağız. Kütüphanede toplanıyoruz. Katılmak isteyen var mı?',
+    upvotes: 67,
+    comments: 23,
+    timeAgo: '3s önce',
+    avatarColor: 'bg-blue-600'
+  },
+  {
+    id: '6',
+    title: 'Kampüs Yakını Ucuz Kahvaltı?',
+    category: 'yeme-icme',
+    user: 'Burak S.',
+    role: 'Seyyah',
+    badge: 'Yeme-İçme',
+    content: 'Sabah derslerine yetişmek için erken çıkıyorum, kampüs yakınında serpme kahvaltı yapabileceğim uygun fiyatlı bir yer var mı? Budget max 100 TL.',
+    upvotes: 43,
+    comments: 31,
+    timeAgo: '12s önce',
+    avatarColor: 'bg-amber-500'
+  },
+  {
+    id: '7',
+    title: 'İkinci El Laptop Satılık',
+    category: 'ikinci-el',
+    user: 'Deniz K.',
+    role: 'Bilge',
+    badge: 'İkinci El',
+    content: 'Lenovo Thinkpad E15 satıyorum. 2 yıllık, hiç sorun yok. 16GB RAM, 512 SSD. Fiyat: 15.000 TL (Pazarlık payı var). Kampüste teslim.',
+    upvotes: 28,
+    comments: 14,
+    timeAgo: '1s önce',
+    avatarColor: 'bg-pink-600'
+  },
+  {
     id: '8',
     title: 'Alaaddin Tepesi Gün Batımı 🌅',
     category: 'sosyal',
@@ -71,69 +138,7 @@ const MOCK_POSTS = [
   }
 ];
 
-// Mock Users Data - Shared across all activities
-const MOCK_USERS = [
-  {
-    id: 1,
-    name: 'Ahmet Yılmaz',
-    initials: 'AY',
-    username: '@ahmetyilmaz',
-    color: 'bg-blue-600',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&h=120&fit=crop',
-    school: 'Selçuk Üniversitesi',
-    department: 'Mühendislik'
-  },
-  {
-    id: 2,
-    name: 'Mehmet Demir',
-    initials: 'MD',
-    username: '@mehmetdemir',
-    color: 'bg-emerald-600',
-    avatar: 'https://i.pravatar.cc/150?img=12',
-    school: 'KTO Karatay',
-    department: 'İşletme'
-  },
-  {
-    id: 3,
-    name: 'Zeynep Kaya',
-    initials: 'ZK',
-    username: '@zeynepkaya',
-    color: 'bg-purple-600',
-    avatar: 'https://i.pravatar.cc/150?img=47',
-    school: 'Selçuk Üniversitesi',
-    department: 'Edebiyat'
-  },
-  {
-    id: 4,
-    name: 'Ayşe Türk',
-    initials: 'AT',
-    username: '@ayseturk',
-    color: 'bg-pink-600',
-    avatar: null,
-    school: 'NEÜ',
-    department: 'Tıp'
-  },
-  {
-    id: 5,
-    name: 'Can Özkan',
-    initials: 'CÖ',
-    username: '@canozkan',
-    color: 'bg-indigo-600',
-    avatar: null,
-    school: 'NEÜ',
-    department: 'Hukuk'
-  },
-  {
-    id: 6,
-    name: 'Ali Veli',
-    initials: 'AV',
-    username: '@aliveli',
-    color: 'bg-teal-600',
-    avatar: 'https://i.pravatar.cc/150?img=15',
-    school: 'Selçuk Üniversitesi',
-    department: 'Mühendislik'
-  }
-];
+// Mock Users Data - Imported from data/mockUsers.ts
 
 // Activity Filter Types
 type ActivityFilter = 'all' | 'comments' | 'likes' | 'rewards' | 'contributions' | 'social';
@@ -175,13 +180,13 @@ const ALL_ACTIVITIES = [
         id: 2, 
     type: 'comment',
         userId: 1, // Ahmet Yılmaz
-        user: MOCK_USERS[0].name.split(' ')[0] + ' ' + MOCK_USERS[0].name.split(' ')[1].charAt(0) + '.',
+        user: getUserDisplayName(MOCK_USERS[0]),
         userInitials: MOCK_USERS[0].initials,
         userColor: MOCK_USERS[0].color,
-        text: 'yorumuna cevap verdi.',
-        postId: '8', // Alaaddin Tepesi post
-        commentId: 'c8-1',
-    postPreview: 'Alaaddin Tepesi Gün Batımı 🌅',
+        text: 'gönderine yorum yaptı.',
+        postId: '6', // Kampüs Yakını Ucuz Kahvaltı post
+        commentId: 'c6-5',
+    postPreview: 'Kampüs Yakını Ucuz Kahvaltı?',
         time: '15 dk önce',
     timeFull: new Date(Date.now() - 15 * 60 * 1000),
     isRead: false,
@@ -192,15 +197,15 @@ const ALL_ACTIVITIES = [
     id: 3,
     type: 'like',
     userId: 2, // Mehmet Demir (first user)
-    user: 'Mehmet D.',
-    userInitials: 'MD',
-    userColor: 'bg-emerald-600',
+    user: getUserDisplayName(MOCK_USERS[1]),
+    userInitials: MOCK_USERS[1].initials,
+    userColor: MOCK_USERS[1].color,
     users: [
-      { id: 2, name: 'Mehmet D.', initials: 'MD', color: 'bg-emerald-600', avatar: 'https://i.pravatar.cc/150?img=12' },
-      { id: 1, name: 'Ahmet Y.', initials: 'AY', color: 'bg-blue-600' },
-      { id: 3, name: 'Zeynep K.', initials: 'ZK', color: 'bg-purple-600', avatar: 'https://i.pravatar.cc/150?img=47' },
-      { id: 4, name: 'Ayşe T.', initials: 'AT', color: 'bg-pink-600' },
-      { id: 5, name: 'Can Ö.', initials: 'CÖ', color: 'bg-indigo-600' }
+      { id: 2, name: getUserDisplayName(MOCK_USERS[1]), initials: MOCK_USERS[1].initials, color: MOCK_USERS[1].color, avatar: MOCK_USERS[1].avatar },
+      { id: 1, name: getUserDisplayName(MOCK_USERS[0]), initials: MOCK_USERS[0].initials, color: MOCK_USERS[0].color, avatar: MOCK_USERS[0].avatar },
+      { id: 3, name: getUserDisplayName(MOCK_USERS[2]), initials: MOCK_USERS[2].initials, color: MOCK_USERS[2].color, avatar: MOCK_USERS[2].avatar },
+      { id: 4, name: getUserDisplayName(MOCK_USERS[3]), initials: MOCK_USERS[3].initials, color: MOCK_USERS[3].color, avatar: MOCK_USERS[3].avatar },
+      { id: 5, name: getUserDisplayName(MOCK_USERS[4]), initials: MOCK_USERS[4].initials, color: MOCK_USERS[4].color, avatar: MOCK_USERS[4].avatar }
     ],
     postId: '1', // Selçuk Hukuk Final Notları post
     otherCount: 4,
@@ -223,7 +228,9 @@ const ALL_ACTIVITIES = [
     time: '2 saat önce',
     timeFull: new Date(Date.now() - 2 * 60 * 60 * 1000),
         isRead: false,
-    category: 'contributions'
+    category: 'contributions',
+    wikiEntryId: 'wiki-hukuk-notlari',
+    wikiTitle: 'Selçuk Hukuk Notları'
   },
   {
     id: 5,
@@ -241,13 +248,13 @@ const ALL_ACTIVITIES = [
     id: 6,
     type: 'comment',
         userId: 3, // Zeynep Kaya
-        user: 'Zeynep K.',
-        userInitials: 'ZK',
-        userColor: 'bg-purple-600',
-        postId: '8', // Alaaddin Tepesi post
-        commentId: 'c8-2',
-    text: 'yorumuna cevap verdi.',
-    postPreview: 'Alaaddin Tepesi Gün Batımı 🌅',
+        user: getUserDisplayName(MOCK_USERS[2]),
+        userInitials: MOCK_USERS[2].initials,
+        userColor: MOCK_USERS[2].color,
+        postId: '5', // Vize Haftası Çalışma Grubu post
+        commentId: 'c5-2',
+    text: 'gönderine yorum yaptı.',
+    postPreview: 'Vize Haftası Çalışma Grubu',
     time: '5 saat önce',
     timeFull: new Date(Date.now() - 5 * 60 * 60 * 1000),
         isRead: true,
@@ -269,9 +276,9 @@ const ALL_ACTIVITIES = [
     id: 8,
     type: 'follow',
     userId: 4, // Ayşe Türk
-    user: 'Ayşe T.',
-    userInitials: 'AT',
-    userColor: 'bg-pink-600',
+    user: getUserDisplayName(MOCK_USERS[3]),
+    userInitials: MOCK_USERS[3].initials,
+    userColor: MOCK_USERS[3].color,
     text: 'seni takip etmeye başladı.',
     time: 'Dün',
     timeFull: new Date(Date.now() - 24 * 60 * 60 * 1000),
@@ -282,12 +289,12 @@ const ALL_ACTIVITIES = [
     id: 9,
     type: 'like',
     userId: 5, // Can Özkan (first user)
-    user: 'Can Ö.',
-    userInitials: 'CÖ',
-    userColor: 'bg-indigo-600',
+    user: getUserDisplayName(MOCK_USERS[4]),
+    userInitials: MOCK_USERS[4].initials,
+    userColor: MOCK_USERS[4].color,
     users: [
-      { id: 5, name: 'Can Ö.', initials: 'CÖ', color: 'bg-indigo-600' },
-      { id: 6, name: 'Ali V.', initials: 'AV', color: 'bg-teal-600', avatar: 'https://i.pravatar.cc/150?img=15' }
+      { id: 5, name: getUserDisplayName(MOCK_USERS[4]), initials: MOCK_USERS[4].initials, color: MOCK_USERS[4].color, avatar: MOCK_USERS[4].avatar },
+      { id: 6, name: getUserDisplayName(MOCK_USERS[5]), initials: MOCK_USERS[5].initials, color: MOCK_USERS[5].color, avatar: MOCK_USERS[5].avatar }
     ],
     postId: '2', // En İyi Etli Ekmek post
     otherCount: 1,
@@ -310,7 +317,304 @@ const ALL_ACTIVITIES = [
     time: '2 gün önce',
     timeFull: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
     isRead: true,
-    category: 'contributions'
+    category: 'contributions',
+    wikiEntryId: 'wiki-kto-karatay',
+    wikiTitle: 'KTO Karatay Üniversitesi'
+  },
+  // 30 kullanıcıdan daha fazla bildirim ekleniyor
+  {
+    id: 11,
+    type: 'comment',
+    userId: 7, // Fatma Şahin
+    user: getUserDisplayName(MOCK_USERS[6]),
+    userInitials: MOCK_USERS[6].initials,
+    userColor: MOCK_USERS[6].color,
+    text: 'gönderine yorum yaptı.',
+    postId: '2',
+    commentId: 'c2-1',
+    postPreview: 'En İyi Etli Ekmek Nerede Yenir?',
+    time: '3 saat önce',
+    timeFull: new Date(Date.now() - 3 * 60 * 60 * 1000),
+    isRead: false,
+    canReply: true,
+    category: 'comments'
+  },
+  {
+    id: 12,
+    type: 'like',
+    userId: 8, // Burak Yıldız
+    user: getUserDisplayName(MOCK_USERS[7]),
+    userInitials: MOCK_USERS[7].initials,
+    userColor: MOCK_USERS[7].color,
+    users: [
+      { id: 8, name: getUserDisplayName(MOCK_USERS[7]), initials: MOCK_USERS[7].initials, color: MOCK_USERS[7].color, avatar: MOCK_USERS[7].avatar },
+      { id: 9, name: getUserDisplayName(MOCK_USERS[8]), initials: MOCK_USERS[8].initials, color: MOCK_USERS[8].color, avatar: MOCK_USERS[8].avatar },
+      { id: 10, name: getUserDisplayName(MOCK_USERS[9]), initials: MOCK_USERS[9].initials, color: MOCK_USERS[9].color, avatar: MOCK_USERS[9].avatar }
+    ],
+    postId: '3',
+    otherCount: 2,
+    text: 've diğerleri gönderini beğendi.',
+    postTitle: 'Bosna Hersek Mah. Kiralık Ev Arkadaşı',
+    postContent: '3+1 evimize 3. arkadaşı arıyoruz...',
+    time: '4 saat önce',
+    timeFull: new Date(Date.now() - 4 * 60 * 60 * 1000),
+    isRead: false,
+    category: 'likes'
+  },
+  {
+    id: 13,
+    type: 'follow',
+    userId: 11, // Selin Özkan
+    user: getUserDisplayName(MOCK_USERS[10]),
+    userInitials: MOCK_USERS[10].initials,
+    userColor: MOCK_USERS[10].color,
+    text: 'seni takip etmeye başladı.',
+    time: '6 saat önce',
+    timeFull: new Date(Date.now() - 6 * 60 * 60 * 1000),
+    isRead: false,
+    category: 'social'
+  },
+  {
+    id: 14,
+    type: 'comment',
+    userId: 11, // Emre Çelik (userId 11, MOCK_USERS[10])
+    user: getUserDisplayName(MOCK_USERS[10]),
+    userInitials: MOCK_USERS[10].initials,
+    userColor: MOCK_USERS[10].color,
+    text: 'gönderine yorum yaptı.',
+    postId: '2',
+    commentId: 'c2-3',
+    postPreview: 'En İyi Etli Ekmek Nerede Yenir?',
+    time: '7 saat önce',
+    timeFull: new Date(Date.now() - 7 * 60 * 60 * 1000),
+    isRead: false,
+    canReply: true,
+    category: 'comments'
+  },
+  {
+    id: 15,
+    type: 'like',
+    userId: 13, // Merve Arslan
+    user: getUserDisplayName(MOCK_USERS[12]),
+    userInitials: MOCK_USERS[12].initials,
+    userColor: MOCK_USERS[12].color,
+    users: [
+      { id: 13, name: getUserDisplayName(MOCK_USERS[12]), initials: MOCK_USERS[12].initials, color: MOCK_USERS[12].color, avatar: MOCK_USERS[12].avatar },
+      { id: 14, name: getUserDisplayName(MOCK_USERS[13]), initials: MOCK_USERS[13].initials, color: MOCK_USERS[13].color, avatar: MOCK_USERS[13].avatar }
+    ],
+    postId: '6',
+    otherCount: 1,
+    text: 've diğeri gönderini beğendi.',
+    postTitle: 'Kampüs Yakını Ucuz Kahvaltı?',
+    postContent: 'Sabah derslerine yetişmek için erken çıkıyorum...',
+    time: '8 saat önce',
+    timeFull: new Date(Date.now() - 8 * 60 * 60 * 1000),
+    isRead: true,
+    category: 'likes'
+  },
+  {
+    id: 16,
+    type: 'comment',
+    userId: 15, // Ceren Yılmaz
+    user: getUserDisplayName(MOCK_USERS[14]),
+    userInitials: MOCK_USERS[14].initials,
+    userColor: MOCK_USERS[14].color,
+    text: 'gönderine yorum yaptı.',
+    postId: '8',
+    commentId: 'c8-7',
+    postPreview: 'Alaaddin Tepesi Gün Batımı 🌅',
+    time: '9 saat önce',
+    timeFull: new Date(Date.now() - 9 * 60 * 60 * 1000),
+    isRead: true,
+    canReply: true,
+    category: 'comments'
+  },
+  {
+    id: 17,
+    type: 'follow',
+    userId: 16, // Onur Kılıç
+    user: getUserDisplayName(MOCK_USERS[15]),
+    userInitials: MOCK_USERS[15].initials,
+    userColor: MOCK_USERS[15].color,
+    text: 'seni takip etmeye başladı.',
+    time: '10 saat önce',
+    timeFull: new Date(Date.now() - 10 * 60 * 60 * 1000),
+    isRead: true,
+    category: 'social'
+  },
+  {
+    id: 18,
+    type: 'comment',
+    userId: 17, // Gizem Aktaş
+    user: getUserDisplayName(MOCK_USERS[16]),
+    userInitials: MOCK_USERS[16].initials,
+    userColor: MOCK_USERS[16].color,
+    text: 'gönderine yorum yaptı.',
+    postId: '3',
+    commentId: 'c3-4',
+    postPreview: 'Bosna Hersek Mah. Kiralık Ev Arkadaşı',
+    time: '11 saat önce',
+    timeFull: new Date(Date.now() - 11 * 60 * 60 * 1000),
+    isRead: true,
+    canReply: true,
+    category: 'comments'
+  },
+  {
+    id: 19,
+    type: 'like',
+    userId: 18, // Tolga Şen
+    user: getUserDisplayName(MOCK_USERS[17]),
+    userInitials: MOCK_USERS[17].initials,
+    userColor: MOCK_USERS[17].color,
+    users: [
+      { id: 18, name: getUserDisplayName(MOCK_USERS[17]), initials: MOCK_USERS[17].initials, color: MOCK_USERS[17].color, avatar: MOCK_USERS[17].avatar },
+      { id: 19, name: getUserDisplayName(MOCK_USERS[18]), initials: MOCK_USERS[18].initials, color: MOCK_USERS[18].color, avatar: MOCK_USERS[18].avatar },
+      { id: 20, name: getUserDisplayName(MOCK_USERS[19]), initials: MOCK_USERS[19].initials, color: MOCK_USERS[19].color, avatar: MOCK_USERS[19].avatar },
+      { id: 21, name: getUserDisplayName(MOCK_USERS[20]), initials: MOCK_USERS[20].initials, color: MOCK_USERS[20].color, avatar: MOCK_USERS[20].avatar }
+    ],
+    postId: '4',
+    otherCount: 3,
+    text: 've diğerleri gönderini beğendi.',
+    postTitle: 'Haftasonu Bisiklet Turu',
+    postContent: 'Bu Pazar Ecdad Parkı\'na sürüyoruz...',
+    time: '12 saat önce',
+    timeFull: new Date(Date.now() - 12 * 60 * 60 * 1000),
+    isRead: true,
+    category: 'likes'
+  },
+  {
+    id: 20,
+    type: 'comment',
+    userId: 22, // Okan Yüksel
+    user: getUserDisplayName(MOCK_USERS[21]),
+    userInitials: MOCK_USERS[21].initials,
+    userColor: MOCK_USERS[21].color,
+    text: 'gönderine yorum yaptı.',
+    postId: '4',
+    commentId: 'c4-4',
+    postPreview: 'Haftasonu Bisiklet Turu',
+    time: '13 saat önce',
+    timeFull: new Date(Date.now() - 13 * 60 * 60 * 1000),
+    isRead: true,
+    canReply: true,
+    category: 'comments'
+  },
+  {
+    id: 21,
+    type: 'follow',
+    userId: 23, // Pınar Koç
+    user: getUserDisplayName(MOCK_USERS[22]),
+    userInitials: MOCK_USERS[22].initials,
+    userColor: MOCK_USERS[22].color,
+    text: 'seni takip etmeye başladı.',
+    time: '14 saat önce',
+    timeFull: new Date(Date.now() - 14 * 60 * 60 * 1000),
+    isRead: true,
+    category: 'social'
+  },
+  {
+    id: 22,
+    type: 'comment',
+    userId: 24, // Hakan Aslan
+    user: getUserDisplayName(MOCK_USERS[23]),
+    userInitials: MOCK_USERS[23].initials,
+    userColor: MOCK_USERS[23].color,
+    text: 'gönderine yorum yaptı.',
+    postId: '5',
+    commentId: 'c5-1',
+    postPreview: 'Vize Haftası Çalışma Grubu',
+    time: '15 saat önce',
+    timeFull: new Date(Date.now() - 15 * 60 * 60 * 1000),
+    isRead: true,
+    canReply: true,
+    category: 'comments'
+  },
+  {
+    id: 23,
+    type: 'like',
+    userId: 25, // Seda Yıldırım
+    user: getUserDisplayName(MOCK_USERS[24]),
+    userInitials: MOCK_USERS[24].initials,
+    userColor: MOCK_USERS[24].color,
+    users: [
+      { id: 25, name: getUserDisplayName(MOCK_USERS[24]), initials: MOCK_USERS[24].initials, color: MOCK_USERS[24].color, avatar: MOCK_USERS[24].avatar },
+      { id: 26, name: getUserDisplayName(MOCK_USERS[25]), initials: MOCK_USERS[25].initials, color: MOCK_USERS[25].color, avatar: MOCK_USERS[25].avatar }
+    ],
+    postId: '5',
+    otherCount: 1,
+    text: 've diğeri gönderini beğendi.',
+    postTitle: 'Vize Haftası Çalışma Grubu',
+    postContent: 'Matematik ve Fizik dersleri için grup çalışması...',
+    time: '16 saat önce',
+    timeFull: new Date(Date.now() - 16 * 60 * 60 * 1000),
+    isRead: true,
+    category: 'likes'
+  },
+  {
+    id: 24,
+    type: 'comment',
+    userId: 12, // Emre Çelik (userId 12, MOCK_USERS[11])
+    user: getUserDisplayName(MOCK_USERS[11]),
+    userInitials: MOCK_USERS[11].initials,
+    userColor: MOCK_USERS[11].color,
+    text: 'gönderine yorum yaptı.',
+    postId: '3',
+    commentId: 'c3-2',
+    postPreview: 'Bosna Hersek Mah. Kiralık Ev Arkadaşı',
+    time: '17 saat önce',
+    timeFull: new Date(Date.now() - 17 * 60 * 60 * 1000),
+    isRead: true,
+    canReply: true,
+    category: 'comments'
+  },
+  {
+    id: 25,
+    type: 'follow',
+    userId: 28, // Barış Öztürk
+    user: getUserDisplayName(MOCK_USERS[27]),
+    userInitials: MOCK_USERS[27].initials,
+    userColor: MOCK_USERS[27].color,
+    text: 'seni takip etmeye başladı.',
+    time: '18 saat önce',
+    timeFull: new Date(Date.now() - 18 * 60 * 60 * 1000),
+    isRead: true,
+    category: 'social'
+  },
+  {
+    id: 26,
+    type: 'comment',
+    userId: 29, // Ebru Şimşek
+    user: getUserDisplayName(MOCK_USERS[28]),
+    userInitials: MOCK_USERS[28].initials,
+    userColor: MOCK_USERS[28].color,
+    text: 'yorumuna cevap verdi.',
+    postId: '6',
+    commentId: 'c6-3',
+    postPreview: 'Kampüs Yakını Ucuz Kahvaltı?',
+    time: '19 saat önce',
+    timeFull: new Date(Date.now() - 19 * 60 * 60 * 1000),
+    isRead: true,
+    canReply: true,
+    category: 'comments'
+  },
+  {
+    id: 27,
+    type: 'like',
+    userId: 30, // Kemal Polat
+    user: getUserDisplayName(MOCK_USERS[29]),
+    userInitials: MOCK_USERS[29].initials,
+    userColor: MOCK_USERS[29].color,
+    users: [
+      { id: 30, name: getUserDisplayName(MOCK_USERS[29]), initials: MOCK_USERS[29].initials, color: MOCK_USERS[29].color, avatar: MOCK_USERS[29].avatar }
+    ],
+    postId: '7',
+    text: 'gönderini beğendi.',
+    postTitle: 'İkinci El Laptop Satılık',
+    postContent: 'Lenovo Thinkpad E15 satıyorum...',
+    time: '20 saat önce',
+    timeFull: new Date(Date.now() - 20 * 60 * 60 * 1000),
+    isRead: true,
+    category: 'likes'
   }
 ];
 
@@ -330,6 +634,7 @@ interface NotificationsScreenProps {
   onGameCenterClick?: () => void;
   onPostClick?: (post: any, commentId?: string) => void;
   onProfileClick?: (userId: number) => void;
+  onWikiEntryClick?: (entry: any) => void;
 }
 
 export const NotificationsScreen = ({ 
@@ -338,6 +643,7 @@ export const NotificationsScreen = ({
   onGameCenterClick,
   onPostClick,
   onProfileClick,
+  onWikiEntryClick,
 }: NotificationsScreenProps = {}) => {
   const { isDarkMode } = useTheme();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
@@ -378,6 +684,34 @@ export const NotificationsScreen = ({
   };
 
   const activityGroups = groupActivitiesByDate();
+
+  // Calculate today's earned coins from reward activities
+  const calculateTodayCoins = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const todayRewards = ALL_ACTIVITIES.filter(activity => {
+      if (activity.type === 'reward' && activity.timeFull >= today) {
+        return true;
+      }
+      return false;
+    });
+
+    let totalCoins = 0;
+    todayRewards.forEach(activity => {
+      if (activity.amount) {
+        // Extract number from "+50 GC" format
+        const match = activity.amount.match(/\d+/);
+        if (match) {
+          totalCoins += parseInt(match[0], 10);
+        }
+      }
+    });
+
+    return totalCoins;
+  };
+
+  const todayEarnedCoins = calculateTodayCoins();
 
   const renderActivityItem = (activity: typeof ALL_ACTIVITIES[0]) => {
     const activityType = ACTIVITY_TYPES[activity.type as keyof typeof ACTIVITY_TYPES];
@@ -667,9 +1001,23 @@ export const NotificationsScreen = ({
         >
           <div className="flex items-start gap-3 md:gap-4">
             <div className="relative flex-shrink-0">
-              <div className={`w-9 h-9 md:w-11 md:h-11 rounded-full ${activity.userColor} flex items-center justify-center text-white text-[10px] md:text-xs font-bold`}>
-                {activity.userInitials}
-              </div>
+              {(() => {
+                const user = activity.userId ? MOCK_USERS.find(u => u.id === activity.userId) : null;
+                const userAvatar = user?.avatar;
+                
+                return userAvatar ? (
+                  <ImageWithFallback
+                    src={userAvatar}
+                    alt={activity.user}
+                    className="w-9 h-9 md:w-11 md:h-11 rounded-full object-cover"
+                    fallbackSrc=""
+                  />
+                ) : (
+                  <div className={`w-9 h-9 md:w-11 md:h-11 rounded-full ${activity.userColor} flex items-center justify-center text-white text-[10px] md:text-xs font-bold`}>
+                    {activity.userInitials}
+                  </div>
+                );
+              })()}
               <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 md:w-4 md:h-4 rounded-full border-2 ${
                 isDarkMode ? 'border-[#1a1a2e]' : 'border-white'
               } ${activityType?.bg || ''} flex items-center justify-center`}>
@@ -727,9 +1075,40 @@ export const NotificationsScreen = ({
     }
 
     // WIKI EDIT / POST TYPE
+    const handleWikiClick = () => {
+      if (activity.type === 'wiki_edit' && onWikiEntryClick && activity.title) {
+        // Create wiki entry structure based on activity data
+        const wikiTitle = (activity as any).wikiTitle || (activity.title.includes('başlığını') 
+          ? activity.title.split(' başlığını')[0] 
+          : activity.title);
+        
+        const wikiEntry = {
+          id: (activity as any).wikiEntryId || 'wiki-1',
+          title: wikiTitle,
+          category: 'Akademik Destek' as const,
+          categoryId: 'akademik-destek',
+          data: {
+            type: 'academic' as const,
+            fields: [
+              { icon: FileText, label: 'Ders', value: wikiTitle, editable: true, key: 'course' },
+              { icon: BookOpen, label: 'Açıklama', value: activity.description || '', editable: true, key: 'description' }
+            ]
+          },
+          lastEditedBy: 'Fatih Y.',
+          lastEditedAt: activity.time,
+          version: 1,
+          upvotes: 0,
+          downvotes: 0,
+          isOwnEntry: true
+        };
+        onWikiEntryClick(wikiEntry);
+      }
+    };
+
     return (
       <div 
         key={activity.id}
+        onClick={handleWikiClick}
         className={`w-full p-3 md:p-4 border-b last:border-b-0 flex items-center gap-3 md:gap-4 transition-all cursor-pointer ${
           isDarkMode 
             ? 'bg-[#1a1a2e] border-slate-700/50 hover:bg-slate-800/50' 
@@ -943,52 +1322,30 @@ export const NotificationsScreen = ({
               <aside className="hidden lg:block w-[30%]">
                 <div className="sticky top-[84px] space-y-6">
                   {/* Daily Summary Card - Above Profile */}
-                  <div className={`rounded-[10px] p-4 shadow-[0_2px_12px_rgba(25,20,46,0.08)] transition-all ${
-                    isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'
+                  <div className={`rounded-[10px] transition-all ${
+                    isDarkMode ? 'bg-transparent' : 'bg-transparent'
                   }`}>
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between mb-4">
                       <p className={`text-xs font-bold uppercase tracking-wider ${
                         isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'
                       }`}>BUGÜN</p>
                       <Calendar className={`w-4 h-4 ${isDarkMode ? 'text-slate-500' : 'text-[#8279a5]'}`} strokeWidth={2} />
                     </div>
                     
-                    {/* GençCoin */}
-                    <div className={`rounded-lg p-3 mb-4 ${
+                    {/* GençCoin - Only today's earned coins */}
+                    {todayEarnedCoins > 0 && (
+                      <div className={`rounded-[10px] p-4 ${
                       isDarkMode 
-                        ? 'bg-gradient-to-br from-[#5852c4] via-[#4F46E5] to-[#3B82F6]' 
-                        : 'bg-gradient-to-br from-[#5852c4] via-[#4F46E5] to-[#3B82F6]'
+                          ? 'bg-gradient-to-r from-[#5852c4] via-[#4F46E5] to-[#3B82F6]' 
+                          : 'bg-gradient-to-r from-[#5852c4] via-[#4F46E5] to-[#3B82F6]'
                     }`}>
-                      <div className="flex items-baseline gap-1.5 mb-1">
-                        <span className="text-xl font-black text-white">+{STATS_DATA.today.coins}</span>
-                        <span className="text-xs font-bold text-white/90">GC</span>
+                      <div className="flex items-baseline gap-2 mb-1.5">
+                          <span className="text-2xl font-black text-white">+{todayEarnedCoins}</span>
+                        <span className="text-sm font-bold text-white/90">GC</span>
                       </div>
-                      <p className="text-white/80 text-[10px]">GençCoin</p>
+                      <p className="text-white/80 text-xs">GençCoin</p>
                     </div>
-                    
-                    {/* Stats - Two separate items with spacing */}
-                    <div className="space-y-2">
-                      {/* Activities */}
-                      <div className="flex items-center gap-1">
-                        <ActivityIcon className="w-3.5 h-3.5 text-[#5852c4] flex-shrink-0" strokeWidth={2.5} />
-                        <span className={`font-bold text-xs ${isDarkMode ? 'text-white' : 'text-[#19142e]'}`}>
-                          {STATS_DATA.today.activities}
-                        </span>
-                        <span className={`text-[10px] ${isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'}`}>
-                          Aktiviteler
-                        </span>
-                      </div>
-                      {/* Interactions */}
-                      <div className="flex items-center gap-1">
-                        <TrendingUp className="w-3.5 h-3.5 text-[#5852c4] flex-shrink-0" strokeWidth={2.5} />
-                        <span className={`font-bold text-xs ${isDarkMode ? 'text-white' : 'text-[#19142e]'}`}>
-                          {STATS_DATA.today.interactions}
-                        </span>
-                        <span className={`text-[10px] ${isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'}`}>
-                          Etkileşimler
-                        </span>
-                      </div>
-                    </div>
+                    )}
                   </div>
                   
                   {/* Right Sidebar Components - Manual Implementation */}

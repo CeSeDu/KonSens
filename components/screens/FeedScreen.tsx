@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, ThumbsUp, MessageCircle, Share2, Flame, MoreHorizontal, Filter, Award, GraduationCap, Utensils, Home, Ticket, Star, TrendingUp, Feather, FileText, MapPin, User, DollarSign, BookOpen, Paperclip, Coffee, Clock as ClockIcon, Briefcase, ShoppingBag } from 'lucide-react';
+import { ChevronRight, ThumbsUp, MessageCircle, Share2, Flame, MoreHorizontal, Filter, Award, GraduationCap, Utensils, Home, Ticket, Star, TrendingUp, Feather, FileText, MapPin, User, DollarSign, BookOpen, Paperclip, Coffee, Clock as ClockIcon, Briefcase, ShoppingBag, Calendar, Link as LinkIcon } from 'lucide-react';
 import { TopicDetailSheet } from '../social/TopicDetailSheet';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { WalletModal } from '../wallet/WalletModal';
@@ -12,6 +12,7 @@ import { WikiEntryCard, WikiEmptyCard } from '../wiki/WikiEntryCard';
 import { CreateWikiModal } from '../wiki/CreateWikiModal';
 import { canCreateWiki, getUserLevelName } from '../../utils/userLevel';
 import { toast } from 'sonner';
+import { MOCK_USERS, getUserDisplayName } from '../../data/mockUsers';
 
 const FILTERS = ['Tümü', 'Akademik', 'Yeme-İçme', 'Barınma', 'Sosyal', 'İkinci El'];
 
@@ -94,6 +95,7 @@ const WIKI_ENTRIES = [
         { icon: FileText, label: 'Ders', value: 'MAT201 - Diferansiyel Denklemler', editable: true, key: 'course' },
         { icon: User, label: 'Hoca', value: 'Prof. Dr. Ahmet Yılmaz', editable: true, key: 'professor' },
         { icon: BookOpen, label: 'Açıklama', value: '2. Sınıf zorunlu dersidir. Vize %40, Final %60 etkiler. Ders notları ve örnek sorular dersin web sayfasında mevcuttur. Haftalık ödevler verilir.', editable: true, key: 'description' },
+        { icon: LinkIcon, label: 'Ders Notu Linki', value: 'https://drive.google.com/drive/folders/abc123', editable: true, key: 'notesLink' },
         { icon: Paperclip, label: 'Kaynak', value: '3 PDF ders notu, 5 çıkmış soru seti, Video ders kayıtları', editable: true, key: 'resources' },
       ]
     },
@@ -115,6 +117,7 @@ const WIKI_ENTRIES = [
         { icon: FileText, label: 'Ders', value: 'BIL201 - Veri Yapıları ve Algoritmalar', editable: true, key: 'course' },
         { icon: User, label: 'Hoca', value: 'Doç. Dr. Zeynep Demir', editable: true, key: 'professor' },
         { icon: BookOpen, label: 'Açıklama', value: '3. Sınıf zorunlu ders. Vize %30, Final %50, Proje %20. C++ ve Python ile uygulamalı ders. Haftalık lab çalışmaları yapılır.', editable: true, key: 'description' },
+        { icon: LinkIcon, label: 'Ders Notu Linki', value: 'https://github.com/selcuk-university/bil201-notes', editable: true, key: 'notesLink' },
         { icon: Paperclip, label: 'Kaynak', value: 'Ders kitabı PDF, 10+ örnek kod, Algoritma görselleştirme linkleri', editable: true, key: 'resources' },
       ]
     },
@@ -136,6 +139,7 @@ const WIKI_ENTRIES = [
         { icon: FileText, label: 'Ders', value: 'IKT202 - Makroekonomi', editable: true, key: 'course' },
         { icon: User, label: 'Hoca', value: 'Prof. Dr. Elif Kaya', editable: true, key: 'professor' },
         { icon: BookOpen, label: 'Açıklama', value: '2. Sınıf zorunlu ders. Vize %40, Final %60. Grafik ve matematiksel modeller üzerinde durulur. Ders notları ve slaytlar sisteme yüklenir.', editable: true, key: 'description' },
+        { icon: LinkIcon, label: 'Ders Notu Linki', value: 'https://selcuk.edu.tr/iktisat/makroekonomi-notlar', editable: true, key: 'notesLink' },
         { icon: Paperclip, label: 'Kaynak', value: 'Ders kitabı, Ekonomik veri setleri, Çözümlü örnekler', editable: true, key: 'resources' },
       ]
     },
@@ -273,6 +277,7 @@ const WIKI_ENTRIES = [
         { icon: Briefcase, label: 'Platformlar', value: 'LinkedIn, Kariyer.net, İşKur, Sahibinden İş, Glassdoor', editable: true, key: 'platforms' },
         { icon: FileText, label: 'CV Hazırlık', value: '1 sayfa, net ve ölçülebilir başarılar, ATS uyumlu format, Profesyonel fotoğraf', editable: true, key: 'cvTips' },
         { icon: User, label: 'Networking', value: 'Mezun ağı, LinkedIn bağlantıları, Üniversite kariyer fuarları, Sektör etkinlikleri', editable: true, key: 'networking' },
+        { icon: Calendar, label: 'Son Başvuru Tarihi', value: '15 Mart 2024', editable: true, key: 'deadline' },
         { icon: BookOpen, label: 'Sertifikalar', value: 'Google Digital Marketing, AWS Cloud Practitioner, Coursera ücretsiz kurslar, Microsoft sertifikaları', editable: true, key: 'certificates' },
         { icon: BookOpen, label: 'Açıklama', value: 'İş ve staj bulma sürecinde doğru platformları kullanmak, profesyonel bir CV hazırlamak ve network oluşturmak çok önemlidir. LinkedIn profilini güncel tutmak, kariyer fuarlarına katılmak ve sektör etkinliklerinde bulunmak iş bulma şansını artırır. Ayrıca online sertifika programlarına katılarak kendini geliştirmek de önemlidir.', editable: true, key: 'description' },
       ]
@@ -295,6 +300,7 @@ const WIKI_ENTRIES = [
         { icon: Briefcase, label: 'Platformlar', value: 'LinkedIn, GitHub Jobs, Stack Overflow Jobs, AngelList, RemoteOK', editable: true, key: 'platforms' },
         { icon: FileText, label: 'CV Hazırlık', value: 'GitHub profil linki, Proje portföyü, Teknik beceriler listesi, Açık kaynak katkıları', editable: true, key: 'cvTips' },
         { icon: User, label: 'Networking', value: 'Yazılım toplulukları, Hackathon\'lar, Tech meetup\'lar, Online coding platformları', editable: true, key: 'networking' },
+        { icon: Calendar, label: 'Son Başvuru Tarihi', value: 'Sürekli başvuru alıyor', editable: true, key: 'deadline' },
         { icon: BookOpen, label: 'Sertifikalar', value: 'AWS, Google Cloud, Microsoft Azure, Kubernetes, Docker, React, Node.js sertifikaları', editable: true, key: 'certificates' },
         { icon: BookOpen, label: 'Açıklama', value: 'Yazılım sektöründe iş bulmak için GitHub profilini aktif tutmak, proje portföyü oluşturmak ve açık kaynak projelere katkıda bulunmak çok önemlidir. Hackathon\'lara katılmak, tech meetup\'larda bulunmak ve online coding platformlarında aktif olmak network oluşturmanıza yardımcı olur. Cloud sertifikaları (AWS, Azure, GCP) ve modern framework bilgisi (React, Node.js) iş bulma şansını artırır.', editable: true, key: 'description' },
       ]
@@ -382,44 +388,54 @@ const FEED_POSTS = [
     id: '1',
     title: 'Selçuk Hukuk Final Notları (Anayasa)',
     category: 'akademik', // matches CreatePostModal category IDs
-    user: 'Ahmet K.',
-    role: 'Bilge',
+    userId: 1, // Ahmet Yılmaz
+    user: getUserDisplayName(MOCK_USERS[0]),
+    role: MOCK_USERS[0].role,
     badge: 'Akademik', // Display badge
     content: 'Anayasa hukuku finali için hazırladığım özet notlar. Drive linki aşağıda, herkese başarılar! Eksik gördüğünüz yerleri yorumlarda belirtin lütfen.',
     upvotes: 124,
     comments: 42,
     timeAgo: '2s önce',
-    avatarColor: 'bg-blue-600'
+    avatarColor: MOCK_USERS[0].color,
+    avatar: MOCK_USERS[0].avatar,
+    initials: MOCK_USERS[0].initials
   },
   {
     id: '2',
     title: 'En İyi Etli Ekmek Nerede Yenir?',
-    user: 'Ayşe Y.',
-    role: 'Gezgin',
+    userId: 4, // Ayşe Türk
+    user: getUserDisplayName(MOCK_USERS[3]),
+    role: MOCK_USERS[3].role,
     badge: 'Yeme-İçme',
     content: 'Arkadaşlar İstanbul\'dan misafirlerim gelecek, şöyle gerçekten çıtır çıtır ve uygun fiyatlı, öğrenci dostu ��nerisi olan var mı?',
     upvotes: 89,
     comments: 56,
     timeAgo: '5s önce',
-    avatarColor: 'bg-amber-500'
+    avatarColor: MOCK_USERS[3].color,
+    avatar: MOCK_USERS[3].avatar,
+    initials: MOCK_USERS[3].initials
   },
   {
     id: '3',
     title: 'Bosna Hersek Mah. Kiralık Ev Arkadaşı',
     category: 'barinma',
-    user: 'Mehmet T.',
-    role: 'Seyyah',
+    userId: 2, // Mehmet Demir
+    user: getUserDisplayName(MOCK_USERS[1]),
+    role: MOCK_USERS[1].role,
     badge: 'Barınma',
     content: '3+1 evimize 3. arkadaşı arıyoruz. Kampüse yürüme mesafesinde, tramvay durağına 5 dk. Kira kişi başı 3500 TL.',
     upvotes: 12,
     comments: 5,
     timeAgo: '1g önce',
-    avatarColor: 'bg-emerald-600'
+    avatarColor: MOCK_USERS[1].color,
+    avatar: MOCK_USERS[1].avatar,
+    initials: MOCK_USERS[1].initials
   },
   {
     id: '4',
     title: 'Haftasonu Bisiklet Turu',
     category: 'sosyal',
+    userId: 3, // Zeynep Kaya (topluluk için)
     user: 'Bisiklet Topluluğu',
     role: 'Yeni Gelen',
     badge: 'Sosyal',
@@ -427,59 +443,73 @@ const FEED_POSTS = [
     upvotes: 45,
     comments: 18,
     timeAgo: '2g önce',
-    avatarColor: 'bg-purple-600'
+    avatarColor: MOCK_USERS[2].color,
+    avatar: MOCK_USERS[2].avatar,
+    initials: 'BT'
   },
   {
     id: '5',
     title: 'Vize Haftası Çalışma Grubu',
     category: 'akademik',
-    user: 'Elif Yılmaz',
-    role: 'Gezgin',
+    userId: 9, // Elif Aydın
+    user: getUserDisplayName(MOCK_USERS[8]),
+    role: MOCK_USERS[8].role,
     badge: 'Akademik',
     content: 'Matematik ve Fizik dersleri için grup çalışması yapacağız. Kütüphanede toplanıyoruz. Katılmak isteyen var mı?',
     upvotes: 67,
     comments: 23,
     timeAgo: '3s önce',
-    avatarColor: 'bg-blue-600'
+    avatarColor: MOCK_USERS[8].color,
+    avatar: MOCK_USERS[8].avatar,
+    initials: MOCK_USERS[8].initials
   },
   {
     id: '6',
     title: 'Kampüs Yakını Ucuz Kahvaltı?',
     category: 'yeme-icme',
-    user: 'Burak S.',
-    role: 'Seyyah',
+    userId: 8, // Burak Yıldız
+    user: getUserDisplayName(MOCK_USERS[7]),
+    role: MOCK_USERS[7].role,
     badge: 'Yeme-İçme',
     content: 'Sabah derslerine yetişmek için erken çıkıyorum, kampüs yakınında serpme kahvaltı yapabileceğim uygun fiyatlı bir yer var mı? Budget max 100 TL.',
     upvotes: 43,
     comments: 31,
     timeAgo: '12s önce',
-    avatarColor: 'bg-amber-500'
+    avatarColor: MOCK_USERS[7].color,
+    avatar: MOCK_USERS[7].avatar,
+    initials: MOCK_USERS[7].initials
   },
   {
     id: '7',
     title: 'İkinci El Laptop Satılık',
     category: 'ikinci-el',
-    user: 'Deniz K.',
-    role: 'Bilge',
+    userId: 10, // Deniz Kaya
+    user: getUserDisplayName(MOCK_USERS[9]),
+    role: MOCK_USERS[9].role,
     badge: 'İkinci El',
     content: 'Lenovo Thinkpad E15 satıyorum. 2 yıllık, hiç sorun yok. 16GB RAM, 512 SSD. Fiyat: 15.000 TL (Pazarlık payı var). Kampüste teslim.',
     upvotes: 28,
     comments: 14,
     timeAgo: '1s önce',
-    avatarColor: 'bg-pink-600'
+    avatarColor: MOCK_USERS[9].color,
+    avatar: MOCK_USERS[9].avatar,
+    initials: MOCK_USERS[9].initials
   },
   {
     id: '8',
     title: 'Alaaddin Tepesi Gün Batımı 🌅',
     category: 'sosyal',
-    user: 'Selin Aydın',
-    role: 'Seyyah',
+    userId: 11, // Selin Özkan
+    user: getUserDisplayName(MOCK_USERS[10]),
+    role: MOCK_USERS[10].role,
     badge: 'Sosyal',
     content: 'Akşam 6\'da Alaaddin Tepesi\'nde gün batımı izleyeceğiz. Yanında çay, simit gelsin! Hava çok güzel bugün, kaçırmayın.',
     upvotes: 92,
     comments: 47,
     timeAgo: '8s önce',
-    avatarColor: 'bg-purple-600'
+    avatarColor: MOCK_USERS[10].color,
+    avatar: MOCK_USERS[10].avatar,
+    initials: MOCK_USERS[10].initials
   }
 ];
 

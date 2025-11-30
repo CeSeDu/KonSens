@@ -7,11 +7,11 @@ export const BottomNavigation = ({ activeTab, onTabChange, onFabClick }: { activ
   const { isDarkMode } = useTheme();
   
   const navItems = [
-    { id: 'home', icon: <Home className="w-6 h-6" />, label: 'Home' },
-    { id: 'discover', icon: <Compass className="w-6 h-6" />, label: 'Discover' },
+    { id: 'home', icon: <Home className="w-6 h-6" />, label: 'Anasayfa' },
+    { id: 'discover', icon: <Compass className="w-6 h-6" />, label: 'Keşfet' },
     { id: 'fab', icon: null, label: '' }, 
-    { id: 'notifications', icon: <Bell className="w-6 h-6" />, label: 'Activity' },
-    { id: 'profile', icon: <User className="w-6 h-6" />, label: 'Profile' },
+    { id: 'notifications', icon: <Bell className="w-6 h-6" />, label: 'Aktivite' },
+    { id: 'profile', icon: <User className="w-6 h-6" />, label: 'Profil' },
   ];
 
   return (

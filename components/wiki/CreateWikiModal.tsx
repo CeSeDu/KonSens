@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, Clock, DollarSign, Coffee, FileText, User, BookOpen, Paperclip, Home, Briefcase } from 'lucide-react';
+import { X, MapPin, Clock, DollarSign, Coffee, FileText, User, BookOpen, Paperclip, Home, Briefcase, Calendar, Link as LinkIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -39,6 +39,7 @@ const CATEGORY_FIELDS: Record<string, Array<{ icon: any; label: string; key: str
     { icon: FileText, label: 'Ders', key: 'course', placeholder: 'MAT201' },
     { icon: User, label: 'Hoca', key: 'professor', placeholder: 'Prof. Dr. Ahmet Yılmaz' },
     { icon: BookOpen, label: 'Açıklama', key: 'description', placeholder: '2. Sınıf zorunlu dersidir. Vize %40, Final %60 etkiler.', type: 'textarea' },
+    { icon: LinkIcon, label: 'Ders Notu Linki', key: 'notesLink', placeholder: 'https://drive.google.com/... veya ders notu linki' },
     { icon: Paperclip, label: 'Kaynak', key: 'resources', placeholder: '2 PDF, 1 Çıkmış Soru' },
   ],
   'barinma-yasam': [
@@ -57,6 +58,7 @@ const CATEGORY_FIELDS: Record<string, Array<{ icon: any; label: string; key: str
     { icon: Briefcase, label: 'Platformlar', key: 'platforms', placeholder: 'LinkedIn, Kariyer.net, İşKur' },
     { icon: FileText, label: 'CV Hazırlık', key: 'cvTips', placeholder: '1 sayfa, net, ölçülebilir başarılar' },
     { icon: User, label: 'Networking', key: 'networking', placeholder: 'Mezun ağı, LinkedIn, Etkinlikler' },
+    { icon: Calendar, label: 'Son Başvuru Tarihi', key: 'deadline', placeholder: '15 Mart 2024 veya Tarih belirtilmemiş' },
     { icon: BookOpen, label: 'Sertifikalar', key: 'certificates', placeholder: 'Google, AWS, Coursera ücretsiz kurslar' },
   ],
 };

@@ -29,7 +29,7 @@ const getRoleData = (coins: number) => {
 export const MiniProfileCard = ({ 
   onProfileClick,
   fullName = 'Fatih Yılmaz',
-  avatar = 'https://images.unsplash.com/photo-1600178572204-6ac8886aae63?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdCUyMHN0dWRlbnR8ZW58MXx8fHwxNzY0MjU5MzU4fDA&ixlib=rb-4.1.0&q=80&w=1080',
+  avatar = 'https://i.pravatar.cc/150?img=12',
   school = 'Selçuk Üniversitesi',
   department = 'Hukuk Fakültesi',
   followers = 342,

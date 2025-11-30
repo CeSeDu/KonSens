@@ -380,6 +380,10 @@ function AppContent() {
                 setActiveTab('profile');
                 setPostStack([]);
               }}
+              onWikiEntryClick={(entry) => {
+                setSelectedWikiEntry(entry);
+                setPostStack([]);
+              }}
             />
           )}
           

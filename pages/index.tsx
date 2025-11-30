@@ -461,6 +461,25 @@ function AppContent() {
                 setActiveTab(tab);
               }}
               onGameCenterClick={() => setShowGameCenter(true)}
+              onPostClick={(post, commentId) => {
+                const comments = MOCK_COMMENTS[post.id] || [];
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const postWithFullDate = {
+                  ...post,
+                  fullDate: `${hours}:${minutes} • ${now.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+                  likes: post.upvotes,
+                  comments: comments.length,
+                  content: post.content,
+                  category: post.badge
+                };
+                setPostStack([{ post: postWithFullDate, comments, highlightCommentId: commentId }]);
+              }}
+              onWikiEntryClick={(entry) => {
+                setSelectedWikiEntry(entry);
+                setPostStack([]);
+              }}
             />
           )}
           
