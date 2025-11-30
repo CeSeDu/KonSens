@@ -11,7 +11,7 @@ import { toast } from 'sonner';
  */
 export const CoinBlaster = () => {
   const { isDarkMode } = useTheme();
-  const { addCoins } = useCoins();
+  const { addCoins, triggerCoinAnimation } = useCoins();
   const containerRef = useRef<HTMLDivElement>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   
@@ -96,9 +96,25 @@ export const CoinBlaster = () => {
           localStorage.setItem('coinBlasterResult', JSON.stringify(result));
           
           // Kazanılan coin'leri ekle
-          if (result.gencCoins > 0) {
-            addCoins(result.gencCoins);
-            toast.success(`🎉 ${result.totalCoins} GençCoin kazandınız!`);
+          if (result.totalCoins > 0) {
+            // Coin'leri cüzdana ekle
+            addCoins(result.totalCoins);
+            
+            // Coin animasyonunu tetikle
+            triggerCoinAnimation();
+            
+            // Başarı bildirimi
+            toast.success(
+              `🎉 Tebrikler! +${result.totalCoins} GençCoin kazandınız!`,
+              {
+                description: `${result.gencCoins} kutu vurdunuz! Coin'ler cüzdanınıza eklendi.`,
+                duration: 5000,
+              }
+            );
+          } else {
+            toast.info('Oyun bitti! Tekrar deneyin.', {
+              duration: 3000,
+            });
           }
         };
 
@@ -297,23 +313,33 @@ export const CoinBlaster = () => {
             }`}>
               Oyun Bitti! 🎉
             </h2>
-            <div className="my-6 p-6 bg-gradient-to-r from-[#5852c4]/20 to-[#7c3aed]/20 rounded-xl border-2 border-[#5852c4]">
-              <p className={`text-6xl font-extrabold mb-2 ${
-                isDarkMode ? 'text-[#5852c4]' : 'text-[#5852c4]'
-              }`}>
-                {gameResult.totalCoins}
+            <div className="my-6 p-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl border-2 border-green-500">
+              <p className="text-green-500 text-lg font-bold mb-2">
+                + Cüzdanınıza Eklendi
               </p>
-              <p className={`text-xl ${
+              <p className="text-6xl font-extrabold mb-2 text-green-500">
+                +{gameResult.totalCoins}
+              </p>
+              <p className={`text-xl flex items-center justify-center gap-2 ${
                 isDarkMode ? 'text-slate-300' : 'text-[#8279a5]'
               }`}>
-                GençCoin Kazandınız!
+                <span className="text-2xl">💰</span> GençCoin
               </p>
             </div>
-            <p className={`text-lg mb-6 ${
-              isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'
+            <div className={`mb-6 p-4 rounded-lg ${
+              isDarkMode ? 'bg-[#0f0e17]' : 'bg-[#f2f3f7]'
             }`}>
-              {gameResult.gencCoins} kutu vurdunuz
-            </p>
+              <p className={`text-lg ${
+                isDarkMode ? 'text-slate-300' : 'text-[#8279a5]'
+              }`}>
+                🎯 {gameResult.gencCoins} kutu vurdunuz
+              </p>
+              <p className={`text-sm mt-1 ${
+                isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'
+              }`}>
+                ⏱️ {gameResult.timeLimit} saniyede tamamlandı
+              </p>
+            </div>
             
             {/* Oyun Tamamlandı Mesajı */}
             <div className={`mt-4 px-4 py-2 rounded-lg ${
