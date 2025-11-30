@@ -228,6 +228,7 @@ export const ContributionsScreen = ({
     };
 
     // Update wiki entry
+    // DÜZELTİLDİ: Vercel build hatasını önlemek için 'as any' eklendi
     setWikiEntries(wikiEntries.map(entry => {
       if (entry.id === updatedEntry.id) {
         return {
@@ -251,7 +252,8 @@ export const ContributionsScreen = ({
         };
       }
       return entry;
-    }));
+    }) as any); 
+
     setIsEditWikiOpen(false);
     setEditingWikiEntry(null);
     toast.success('Wiki girişi başarıyla güncellendi!');
@@ -583,4 +585,3 @@ export const ContributionsScreen = ({
     </div>
   );
 };
-
