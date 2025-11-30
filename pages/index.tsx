@@ -6,6 +6,13 @@ import { DiscoverScreen } from '../components/screens/DiscoverScreen';
 import { NotificationsScreen } from '../components/screens/NotificationsScreen';
 import { PostDetailScreen } from '../components/screens/PostDetailScreen';
 import { AnnouncementDetailScreen } from '../components/screens/AnnouncementDetailScreen';
+import { AnnouncementsListScreen } from '../components/screens/AnnouncementsListScreen';
+import { PlaceDetailScreen } from '../components/screens/PlaceDetailScreen';
+import { PlacesListScreen } from '../components/screens/PlacesListScreen';
+import { EventDetailScreen } from '../components/screens/EventDetailScreen';
+import { EventsListScreen } from '../components/screens/EventsListScreen';
+import { SocialResponsibilityDetailScreen } from '../components/screens/SocialResponsibilityDetailScreen';
+import { SocialResponsibilityListScreen } from '../components/screens/SocialResponsibilityListScreen';
 import { WikiDetailScreen } from '../components/screens/WikiDetailScreen';
 import { ExamHeroScreen } from '../components/screens/ExamHeroScreen';
 import { CampusReporterScreen } from '../components/screens/CampusReporterScreen';
@@ -18,8 +25,9 @@ import { GameCenterScreen } from '../components/screens/GameCenterScreen';
 import { LoginScreen } from '../components/auth/LoginScreen';
 import { MOCK_COMMENTS, convertCommentToPost } from '../data/mockComments';
 import { ThemeProvider } from '../contexts/ThemeContext';
-import { CoinProvider } from '../contexts/CoinContext';
+import { CoinProvider, useCoins } from '../contexts/CoinContext';
 import { SearchOverlay } from '../components/search/SearchOverlay';
+import { WelcomeCoinModal } from '../components/onboarding/WelcomeCoinModal';
 
 interface PostStackItem {
   post: any;
@@ -33,12 +41,26 @@ function AppContent() {
   const [showGameCenter, setShowGameCenter] = useState(false);
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   
   // Navigation stack for infinite post drilling
   const [postStack, setPostStack] = useState<PostStackItem[]>([]);
   
   // Announcement detail state
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
+  const [showAnnouncementsList, setShowAnnouncementsList] = useState(false);
+  
+  // Place detail state
+  const [selectedPlace, setSelectedPlace] = useState<any>(null);
+  const [showPlacesList, setShowPlacesList] = useState(false);
+  
+  // Event detail state
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [showEventsList, setShowEventsList] = useState(false);
+  
+  // Social Responsibility detail state
+  const [selectedSocialResponsibility, setSelectedSocialResponsibility] = useState<any>(null);
+  const [showSocialResponsibilityList, setShowSocialResponsibilityList] = useState(false);
   
   // Topic detail state (for Wiki + Dictionary pages)
   const [showTopicDetail, setShowTopicDetail] = useState(false);
@@ -76,6 +98,18 @@ function AppContent() {
     }
   }, [activeTab]);
 
+  // Check for welcome animation flag on mount and when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const shouldShowWelcome = localStorage.getItem('showWelcomeAnimation');
+      if (shouldShowWelcome === 'true') {
+        setShowWelcomeModal(true);
+        // Remove flag immediately to prevent showing again
+        localStorage.removeItem('showWelcomeAnimation');
+      }
+    }
+  }, [isAuthenticated]);
+
   // Show login modal if requested
   if (showLoginModal) {
     return <LoginScreen onLogin={() => {
@@ -98,6 +132,7 @@ function AppContent() {
           onGameSelect={(gameId) => {
             setActiveGame(gameId);
             setShowGameCenter(false);
+            window.scrollTo(0, 0);
           }}
           onWalletOpen={() => {}}
         />
@@ -118,7 +153,10 @@ function AppContent() {
     return (
       <>
         <ExamHeroScreen 
-          onBack={() => setActiveGame(null)}
+          onBack={() => {
+            setActiveGame(null);
+            setShowGameCenter(true);
+          }}
           activeTab={activeTab}
           onTabChange={(tab) => {
             setActiveTab(tab);
@@ -141,7 +179,10 @@ function AppContent() {
     return (
       <>
         <CampusReporterScreen 
-          onBack={() => setActiveGame(null)}
+          onBack={() => {
+            setActiveGame(null);
+            setShowGameCenter(true);
+          }}
           activeTab={activeTab}
           onTabChange={(tab) => {
             setActiveTab(tab);
@@ -164,7 +205,10 @@ function AppContent() {
     return (
       <>
         <TreasureHuntScreen 
-          onBack={() => setActiveGame(null)}
+          onBack={() => {
+            setActiveGame(null);
+            setShowGameCenter(true);
+          }}
           activeTab={activeTab}
           onTabChange={(tab) => {
             setActiveTab(tab);
@@ -187,7 +231,10 @@ function AppContent() {
     return (
       <>
         <DailyPollScreen 
-          onBack={() => setActiveGame(null)}
+          onBack={() => {
+            setActiveGame(null);
+            setShowGameCenter(true);
+          }}
           activeTab={activeTab}
           onTabChange={(tab) => {
             setActiveTab(tab);
@@ -210,7 +257,10 @@ function AppContent() {
     return (
       <>
         <WheelOfFortuneScreen 
-          onBack={() => setActiveGame(null)}
+          onBack={() => {
+            setActiveGame(null);
+            setShowGameCenter(true);
+          }}
           activeTab={activeTab}
           onTabChange={(tab) => {
             setActiveTab(tab);
@@ -267,8 +317,34 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-[#f2f3f7] dark:bg-[#0f0e17] font-sans pb-28 lg:pb-0 transition-colors">
 
-      {/* Show Wiki Detail if selected */}
-      {selectedWikiEntry ? (
+      {/* Show Announcements List if requested */}
+      {showAnnouncementsList ? (
+        <>
+          <AnnouncementsListScreen
+            onBack={() => setShowAnnouncementsList(false)}
+            activeTab={activeTab}
+            onTabChange={(tab) => {
+              setShowAnnouncementsList(false);
+              setSelectedAnnouncement(null);
+              setActiveTab(tab);
+            }}
+            onGameCenterClick={() => setShowGameCenter(true)}
+            onAnnouncementClick={(announcement) => {
+              setShowAnnouncementsList(false);
+              setSelectedAnnouncement(announcement);
+            }}
+          />
+          <BottomNavigation 
+            activeTab={activeTab} 
+            onTabChange={(tab) => {
+              setShowAnnouncementsList(false);
+              setSelectedAnnouncement(null);
+              setActiveTab(tab);
+            }} 
+            onFabClick={() => setShowGameCenter(true)}
+          />
+        </>
+      ) : selectedWikiEntry ? (
         <>
           <WikiDetailScreen
             entry={selectedWikiEntry}
@@ -289,6 +365,171 @@ function AppContent() {
               setPostStack([]);
               setSelectedWikiEntry(null);
               setSelectedAnnouncement(null);
+              setShowTopicDetail(false);
+              setActiveTab(tab);
+            }} 
+            onFabClick={() => setShowGameCenter(true)}
+          />
+        </>
+      ) : showPlacesList ? (
+        <>
+          <PlacesListScreen
+            onBack={() => setShowPlacesList(false)}
+            activeTab={activeTab}
+            onTabChange={(tab) => {
+              setShowPlacesList(false);
+              setSelectedPlace(null);
+              setActiveTab(tab);
+            }}
+            onGameCenterClick={() => setShowGameCenter(true)}
+            onPlaceClick={(place) => {
+              setShowPlacesList(false);
+              setSelectedPlace(place);
+            }}
+          />
+          <BottomNavigation 
+            activeTab={activeTab} 
+            onTabChange={(tab) => {
+              setShowPlacesList(false);
+              setSelectedPlace(null);
+              setActiveTab(tab);
+            }} 
+            onFabClick={() => setShowGameCenter(true)}
+          />
+        </>
+      ) : showEventsList ? (
+        <>
+          <EventsListScreen
+            onBack={() => setShowEventsList(false)}
+            activeTab={activeTab}
+            onTabChange={(tab) => {
+              setShowEventsList(false);
+              setSelectedEvent(null);
+              setActiveTab(tab);
+            }}
+            onGameCenterClick={() => setShowGameCenter(true)}
+            onEventClick={(event) => {
+              setShowEventsList(false);
+              setSelectedEvent(event);
+            }}
+          />
+          <BottomNavigation 
+            activeTab={activeTab} 
+            onTabChange={(tab) => {
+              setShowEventsList(false);
+              setSelectedEvent(null);
+              setActiveTab(tab);
+            }} 
+            onFabClick={() => setShowGameCenter(true)}
+          />
+        </>
+      ) : showSocialResponsibilityList ? (
+        <>
+          <SocialResponsibilityListScreen
+            onBack={() => setShowSocialResponsibilityList(false)}
+            activeTab={activeTab}
+            onTabChange={(tab) => {
+              setShowSocialResponsibilityList(false);
+              setSelectedSocialResponsibility(null);
+              setActiveTab(tab);
+            }}
+            onGameCenterClick={() => setShowGameCenter(true)}
+            onSocialResponsibilityClick={(project) => {
+              setShowSocialResponsibilityList(false);
+              setSelectedSocialResponsibility(project);
+            }}
+          />
+          <BottomNavigation 
+            activeTab={activeTab} 
+            onTabChange={(tab) => {
+              setShowSocialResponsibilityList(false);
+              setSelectedSocialResponsibility(null);
+              setActiveTab(tab);
+            }} 
+            onFabClick={() => setShowGameCenter(true)}
+          />
+        </>
+      ) : selectedPlace ? (
+        <>
+          <PlaceDetailScreen
+            place={selectedPlace}
+            onBack={() => setSelectedPlace(null)}
+            activeTab={activeTab}
+            onTabChange={(tab) => {
+              setPostStack([]);
+              setSelectedWikiEntry(null);
+              setSelectedAnnouncement(null);
+              setSelectedPlace(null);
+              setShowTopicDetail(false);
+              setActiveTab(tab);
+            }}
+            onGameCenterClick={() => setShowGameCenter(true)}
+          />
+          <BottomNavigation 
+            activeTab={activeTab} 
+            onTabChange={(tab) => {
+              setPostStack([]);
+              setSelectedWikiEntry(null);
+              setSelectedAnnouncement(null);
+              setSelectedPlace(null);
+              setShowTopicDetail(false);
+              setActiveTab(tab);
+            }} 
+            onFabClick={() => setShowGameCenter(true)}
+          />
+        </>
+      ) : selectedEvent ? (
+        <>
+          <EventDetailScreen
+            event={selectedEvent}
+            onBack={() => setSelectedEvent(null)}
+            activeTab={activeTab}
+            onTabChange={(tab) => {
+              setPostStack([]);
+              setSelectedWikiEntry(null);
+              setSelectedAnnouncement(null);
+              setSelectedEvent(null);
+              setShowTopicDetail(false);
+              setActiveTab(tab);
+            }}
+            onGameCenterClick={() => setShowGameCenter(true)}
+          />
+          <BottomNavigation 
+            activeTab={activeTab} 
+            onTabChange={(tab) => {
+              setPostStack([]);
+              setSelectedWikiEntry(null);
+              setSelectedAnnouncement(null);
+              setSelectedEvent(null);
+              setShowTopicDetail(false);
+              setActiveTab(tab);
+            }} 
+            onFabClick={() => setShowGameCenter(true)}
+          />
+        </>
+      ) : selectedSocialResponsibility ? (
+        <>
+          <SocialResponsibilityDetailScreen
+            project={selectedSocialResponsibility}
+            onBack={() => setSelectedSocialResponsibility(null)}
+            activeTab={activeTab}
+            onTabChange={(tab) => {
+              setPostStack([]);
+              setSelectedWikiEntry(null);
+              setSelectedAnnouncement(null);
+              setSelectedSocialResponsibility(null);
+              setShowTopicDetail(false);
+              setActiveTab(tab);
+            }}
+            onGameCenterClick={() => setShowGameCenter(true)}
+          />
+          <BottomNavigation 
+            activeTab={activeTab} 
+            onTabChange={(tab) => {
+              setPostStack([]);
+              setSelectedWikiEntry(null);
+              setSelectedAnnouncement(null);
+              setSelectedSocialResponsibility(null);
               setShowTopicDetail(false);
               setActiveTab(tab);
             }} 
@@ -367,6 +608,13 @@ function AppContent() {
                 setPostStack([]);
                 setSelectedWikiEntry(null);
                 setSelectedAnnouncement(null);
+                setSelectedPlace(null);
+                setSelectedEvent(null);
+                setSelectedSocialResponsibility(null);
+                setShowAnnouncementsList(false);
+                setShowPlacesList(false);
+                setShowEventsList(false);
+                setShowSocialResponsibilityList(false);
                 setShowTopicDetail(false);
                 setActiveTab(tab);
               }}
@@ -403,6 +651,13 @@ function AppContent() {
                 setPostStack([]);
                 setSelectedWikiEntry(null);
                 setSelectedAnnouncement(null);
+                setSelectedPlace(null);
+                setSelectedEvent(null);
+                setSelectedSocialResponsibility(null);
+                setShowAnnouncementsList(false);
+                setShowPlacesList(false);
+                setShowEventsList(false);
+                setShowSocialResponsibilityList(false);
                 setShowTopicDetail(false);
                 setActiveTab(tab);
               }}
@@ -447,6 +702,58 @@ function AppContent() {
                   setSelectedAnnouncement(announcement);
                 }
               }}
+              onAnnouncementsListClick={() => {
+                if (!isAuthenticated) {
+                  setShowLoginModal(true);
+                } else {
+                  setShowAnnouncementsList(true);
+                }
+              }}
+              onPlaceClick={(place) => {
+                if (!isAuthenticated) {
+                  setShowLoginModal(true);
+                } else {
+                  setSelectedPlace(place);
+                  setShowPlacesList(false);
+                }
+              }}
+              onPlacesListClick={() => {
+                if (!isAuthenticated) {
+                  setShowLoginModal(true);
+                } else {
+                  setShowPlacesList(true);
+                }
+              }}
+              onEventClick={(event) => {
+                if (!isAuthenticated) {
+                  setShowLoginModal(true);
+                } else {
+                  setSelectedEvent(event);
+                  setShowEventsList(false);
+                }
+              }}
+              onEventsListClick={() => {
+                if (!isAuthenticated) {
+                  setShowLoginModal(true);
+                } else {
+                  setShowEventsList(true);
+                }
+              }}
+              onSocialResponsibilityClick={(project) => {
+                if (!isAuthenticated) {
+                  setShowLoginModal(true);
+                } else {
+                  setSelectedSocialResponsibility(project);
+                  setShowSocialResponsibilityList(false);
+                }
+              }}
+              onSocialResponsibilityListClick={() => {
+                if (!isAuthenticated) {
+                  setShowLoginModal(true);
+                } else {
+                  setShowSocialResponsibilityList(true);
+                }
+              }}
               onLoginClick={() => setShowLoginModal(true)}
             />
           )}
@@ -457,6 +764,13 @@ function AppContent() {
                 setPostStack([]);
                 setSelectedWikiEntry(null);
                 setSelectedAnnouncement(null);
+                setSelectedPlace(null);
+                setSelectedEvent(null);
+                setSelectedSocialResponsibility(null);
+                setShowAnnouncementsList(false);
+                setShowPlacesList(false);
+                setShowEventsList(false);
+                setShowSocialResponsibilityList(false);
                 setShowTopicDetail(false);
                 setActiveTab(tab);
               }}
@@ -543,6 +857,11 @@ function AppContent() {
         onClose={() => setIsCreatePostOpen(false)} 
       />
 
+      {/* Welcome Coin Modal */}
+      <WelcomeCoinModal 
+        isOpen={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+      />
 
       {/* Global Search Overlay */}
       <SearchOverlay
@@ -563,7 +882,7 @@ function AppContent() {
 export default function Home() {
   return (
     <ThemeProvider>
-      <CoinProvider initialCoins={6240}>
+      <CoinProvider initialCoins={0}>
         <AppContent />
       </CoinProvider>
     </ThemeProvider>

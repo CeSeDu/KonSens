@@ -23,7 +23,6 @@ import { CoinProvider } from './contexts/CoinContext';
 interface PostStackItem {
   post: any;
   comments: any[];
-  highlightCommentId?: string;
 }
 
 function AppContent() {
@@ -262,7 +261,6 @@ function AppContent() {
               setPostStack([]);
             }}
             onGameCenterClick={() => setIsGameCenterOpen(true)}
-            highlightCommentId={postStack[postStack.length - 1].highlightCommentId}
           />
           <BottomNavigation 
             activeTab={activeTab} 
@@ -373,7 +371,7 @@ function AppContent() {
                   content: post.content,
                   category: post.badge
                 };
-                setPostStack([{ post: postWithFullDate, comments, highlightCommentId: commentId }]);
+                setPostStack([{ post: postWithFullDate, comments }]);
               }}
               onProfileClick={(userId) => {
                 // Navigate to profile tab - in a real app, you'd pass the userId to ProfileScreen
@@ -455,7 +453,7 @@ function AppContent() {
 export default function App() {
   return (
     <ThemeProvider>
-      <CoinProvider initialCoins={6240}>
+      <CoinProvider initialCoins={0}>
         <AppContent />
       </CoinProvider>
     </ThemeProvider>

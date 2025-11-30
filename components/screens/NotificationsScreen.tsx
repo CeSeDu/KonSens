@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { GlobalHeader } from '../layout/GlobalHeader';
 import { WalletModal } from '../wallet/WalletModal';
+import { PageLayout } from '../layout/PageLayout';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { MOCK_COMMENTS } from '../../data/mockComments';
@@ -169,12 +170,10 @@ const ALL_ACTIVITIES = [
         id: 1, 
         type: 'reward', 
         title: 'Haftalık Seri Bonusu',
-    description: 'Harika gidiyorsun! Bu hafta her gün giriş yaptığın için bonus kazandın.',
+        text: 'Harika gidiyorsun! Bu hafta her gün giriş yaptığın için bonus kazandın.',
         amount: '+50 GC',
         time: '2 dk önce',
-    timeFull: new Date(Date.now() - 2 * 60 * 1000),
-    isRead: false,
-    category: 'rewards'
+        isRead: false
       },
       { 
         id: 2, 
@@ -258,14 +257,13 @@ const ALL_ACTIVITIES = [
     time: '5 saat önce',
     timeFull: new Date(Date.now() - 5 * 60 * 60 * 1000),
         isRead: true,
-    canReply: true,
-    category: 'comments'
+        canReply: false
       },
       { 
-    id: 7,
+        id: 4, 
         type: 'reward', 
         title: 'Etkinlik Katılımı',
-    description: 'Kampüs festivaline katılımın doğrulandı.',
+        text: 'Kampüs festivaline katılımın doğrulandı.',
         amount: '+120 GC',
     time: 'Dün',
     timeFull: new Date(Date.now() - 24 * 60 * 60 * 1000),
@@ -666,9 +664,9 @@ export const NotificationsScreen = ({
 
     const groups: { label: string; activities: typeof ALL_ACTIVITIES }[] = [];
 
-    const todayActivities = filteredActivities.filter(a => a.timeFull >= today);
-    const yesterdayActivities = filteredActivities.filter(a => a.timeFull >= yesterday && a.timeFull < today);
-    const thisWeekActivities = filteredActivities.filter(a => a.timeFull >= weekAgo && a.timeFull < yesterday);
+    const todayActivities = filteredActivities.filter(a => a.timeFull && a.timeFull >= today);
+    const yesterdayActivities = filteredActivities.filter(a => a.timeFull && a.timeFull >= yesterday && a.timeFull < today);
+    const thisWeekActivities = filteredActivities.filter(a => a.timeFull && a.timeFull >= weekAgo && a.timeFull < yesterday);
 
     if (todayActivities.length > 0) {
       groups.push({ label: 'BUGÜN', activities: todayActivities });
@@ -685,13 +683,19 @@ export const NotificationsScreen = ({
 
   const activityGroups = groupActivitiesByDate();
 
+  // Get filter count
+  const getFilterCount = (filterValue: ActivityFilter) => {
+    if (filterValue === 'all') return ALL_ACTIVITIES.length;
+    return ALL_ACTIVITIES.filter(a => a.category === filterValue).length;
+  };
+
   // Calculate today's earned coins from reward activities
   const calculateTodayCoins = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
     const todayRewards = ALL_ACTIVITIES.filter(activity => {
-      if (activity.type === 'reward' && activity.timeFull >= today) {
+      if (activity.type === 'reward' && activity.timeFull && activity.timeFull >= today) {
         return true;
       }
       return false;
@@ -722,32 +726,36 @@ export const NotificationsScreen = ({
     if (activity.type === 'reward') {
       return (
         <div 
-          key={activity.id}
-          className={`w-full p-3 md:p-4 border-b last:border-b-0 flex items-center gap-3 md:gap-4 transition-all cursor-pointer ${
+          key={activity.id} 
+          className={`w-full p-4 border-b last:border-b-0 flex items-center gap-4 transition-colors cursor-pointer ${
             isDarkMode 
               ? 'bg-[#1a1a2e] border-slate-700/50 hover:bg-slate-800/50' 
               : 'bg-white border-[#ededff] hover:bg-[#f2f3f7]'
-          } ${!activity.isRead ? (isDarkMode ? 'bg-slate-800/30' : 'bg-purple-50/50') : ''}`}
+          }`}
         >
-          <div className={`w-9 h-9 md:w-11 md:h-11 rounded-full flex items-center justify-center flex-shrink-0 ${activityType?.bg || ''}`}>
-            <IconComponent className="w-4 h-4 md:w-5 md:h-5" style={{ color: iconColor }} strokeWidth={2.5} />
+          {/* Coin Icon */}
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+            isDarkMode ? 'bg-amber-500/20' : 'bg-amber-50'
+          }`}>
+            <Coins className="w-5 h-5 text-[#F59E0B]" strokeWidth={2.5} />
           </div>
           
+          {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-                <h4 className={`font-bold text-xs md:text-sm mb-0.5 line-clamp-1 ${isDarkMode ? 'text-white' : 'text-[#19142e]'}`}>
-                  {activity.title}
-                </h4>
-                <p className={`text-[11px] md:text-xs line-clamp-1 ${isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'}`}>
-                  {activity.description}
-                </p>
-              </div>
-              <span className="font-black text-emerald-600 text-xs md:text-sm flex-shrink-0">{activity.amount}</span>
-            </div>
-            <span className={`text-[10px] md:text-xs mt-0.5 block ${isDarkMode ? 'text-slate-500' : 'text-[#8279a5]'}`}>
-              {activity.time}
-            </span>
+            <h4 className={`font-bold text-sm mb-0.5 ${
+              isDarkMode ? 'text-white' : 'text-[#19142e]'
+            }`}>{activity.title}</h4>
+            <p className={`text-xs line-clamp-1 ${
+              isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'
+            }`}>{activity.text}</p>
+            <span className={`text-xs mt-1 block ${
+              isDarkMode ? 'text-slate-500' : 'text-[#8279a5]'
+            }`}>{activity.time}</span>
+            {activity.amount && (
+              <span className={`text-xs font-bold mt-1 block ${
+                isDarkMode ? 'text-amber-400' : 'text-[#F59E0B]'
+              }`}>{activity.amount}</span>
+            )}
           </div>
           
           {!activity.isRead && (
@@ -799,34 +807,29 @@ export const NotificationsScreen = ({
       );
     }
 
-    // LIKE TYPE with multiple users (special layout)
+    // TYPE B: LIKE WITH MULTIPLE USERS
     if (activity.type === 'like' && activity.users && activity.users.length > 0) {
       const firstUser = activity.users[0];
-      const otherUsers = activity.users.slice(1, 6); // Show max 5 more avatars
-      const totalCount = (activity.otherCount || 0) + activity.users.length;
-      
-      const handleClick = () => {
-        if (activity.postId && onPostClick) {
-          const post = MOCK_POSTS.find(p => p.id === activity.postId);
-          if (post) {
-            const now = new Date();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const postWithFullDate = {
-              ...post,
-              fullDate: `${hours}:${minutes} • ${now.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}`,
-              likes: post.upvotes,
-              comments: post.comments,
-            };
-            onPostClick(postWithFullDate);
-          }
-        }
-      };
-
       return (
         <div 
-          key={activity.id}
-          onClick={handleClick}
+          key={activity.id} 
+          onClick={() => {
+            if (activity.postId && onPostClick) {
+              const post = MOCK_POSTS.find(p => p.id === activity.postId);
+              if (post) {
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const postWithFullDate = {
+                  ...post,
+                  fullDate: `${hours}:${minutes} • ${now.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+                  likes: post.upvotes,
+                  comments: post.comments,
+                };
+                onPostClick(postWithFullDate);
+              }
+            }
+          }}
           className={`w-full p-3 md:p-4 border-b last:border-b-0 transition-all cursor-pointer ${
             isDarkMode 
               ? 'bg-[#1a1a2e] border-slate-700/50 hover:bg-slate-800/50' 
@@ -879,7 +882,7 @@ export const NotificationsScreen = ({
             {/* Right: Text Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0">
                   <p className={`text-xs md:text-sm leading-snug mb-0.5 ${isDarkMode ? 'text-slate-300' : 'text-[#8279a5]'}`}>
                     <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-[#19142e]'}`}>
                       {firstUser.name}
@@ -1008,13 +1011,13 @@ export const NotificationsScreen = ({
                 return userAvatar ? (
                   <ImageWithFallback
                     src={userAvatar}
-                    alt={activity.user}
+                    alt={activity.user || 'User'}
                     className="w-9 h-9 md:w-11 md:h-11 rounded-full object-cover"
                     fallbackSrc=""
                   />
                 ) : (
-                  <div className={`w-9 h-9 md:w-11 md:h-11 rounded-full ${activity.userColor} flex items-center justify-center text-white text-[10px] md:text-xs font-bold`}>
-                    {activity.userInitials}
+                  <div className={`w-9 h-9 md:w-11 md:h-11 rounded-full ${activity.userColor || 'bg-gray-500'} flex items-center justify-center text-white text-[10px] md:text-xs font-bold`}>
+                    {activity.userInitials || activity.user?.charAt(0) || '?'}
                   </div>
                 );
               })()}
@@ -1046,27 +1049,24 @@ export const NotificationsScreen = ({
               </div>
             </div>
 
+            {/* Unread Indicator */}
             {!activity.isRead && (
-              <div className="hidden md:block w-2 h-2 rounded-full bg-[#5852c4] mt-1 flex-shrink-0 animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-[#5852c4] mt-1 flex-shrink-0" />
             )}
           </div>
 
-          {activity.type === 'comment' && onPostClick && activity.postId && (
-            <div 
-              className="ml-[42px] md:ml-[60px] mt-2 md:mt-3"
-              onClick={(e) => e.stopPropagation()}
-            >
+          {/* Reply Action */}
+          {activity.canReply && (
+            <div className="ml-14 mt-2">
               <button 
-                type="button"
                 onClick={handleReplyClick}
-                className={`flex items-center gap-1.5 px-2.5 py-1 md:px-3 md:py-1.5 rounded-lg text-[11px] md:text-xs font-bold transition-colors cursor-pointer ${
-                isDarkMode 
-                    ? 'bg-[#5852c4] text-white hover:bg-[#6d65d9] shadow-lg shadow-[#5852c4]/20' 
-                    : 'bg-[#5852c4] text-white hover:bg-[#6d65d9] shadow-lg shadow-[#5852c4]/20'
-                }`}
-              >
-                <Reply className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                <span>Yanıtla</span>
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  isDarkMode 
+                    ? 'bg-slate-700/50 text-slate-300 hover:bg-slate-600' 
+                    : 'bg-[#f2f3f7] text-[#8279a5] hover:bg-[#ededff] hover:text-[#5852c4]'
+                }`}>
+                <Reply className="w-3.5 h-3.5" />
+                Yanıtla
               </button>
             </div>
           )}
@@ -1113,12 +1113,13 @@ export const NotificationsScreen = ({
           isDarkMode 
             ? 'bg-[#1a1a2e] border-slate-700/50 hover:bg-slate-800/50' 
             : 'bg-white border-[#ededff] hover:bg-[#f2f3f7]'
-        } ${!activity.isRead ? (isDarkMode ? 'bg-slate-800/30' : 'bg-purple-50/50') : ''}`}
+        }`}
       >
-        <div className={`w-9 h-9 md:w-11 md:h-11 rounded-full flex items-center justify-center flex-shrink-0 ${activityType?.bg || ''}`}>
-          <IconComponent className="w-4 h-4 md:w-5 md:h-5" style={{ color: iconColor }} strokeWidth={2.5} />
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+          isDarkMode ? 'bg-slate-700/50 text-slate-400' : 'bg-[#f2f3f7] text-[#8279a5]'
+        }`}>
+          <Info className="w-5 h-5" />
         </div>
-
         <div className="flex-1 min-w-0">
           <h4 className={`font-bold text-xs md:text-sm mb-0.5 line-clamp-1 ${isDarkMode ? 'text-white' : 'text-[#19142e]'}`}>
             {activity.title}
@@ -1153,14 +1154,6 @@ export const NotificationsScreen = ({
     );
   };
 
-  // Get filter counts
-  const getFilterCount = (filter: ActivityFilter) => {
-    if (filter === 'all') return ALL_ACTIVITIES.length;
-    return ALL_ACTIVITIES.filter(a => a.category === filter).length;
-  };
-
-  const unreadCount = ALL_ACTIVITIES.filter(a => !a.isRead).length;
-
   return (
     <>
       <div className={`min-h-screen pb-32 lg:pb-6 transition-colors ${
@@ -1171,47 +1164,35 @@ export const NotificationsScreen = ({
         <GlobalHeader 
           type="rich"
           onWalletClick={() => setIsWalletModalOpen(true)}
-          coinBalance="2.450"
           onSearchClick={() => console.log('🔍 Search clicked')}
           activeTab={activeTab}
           onTabChange={onTabChange}
           onGameCenterClick={onGameCenterClick}
         />
 
-        {/* Main Content */}
+        {/* Main Content with PageLayout (70-30 grid) */}
         <div className="pt-[120px] lg:pt-[84px]">
-          <div className="max-w-[1200px] mx-auto px-0 lg:px-6">
-            <div className="flex gap-6">
-              
-              {/* LEFT COLUMN - Main Content */}
-              <main className="w-full lg:w-[70%]">
-                {/* 1. PAGE HEADER */}
-                <header className="px-5 lg:px-0 py-4 md:py-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <h1 className={`text-xl md:text-2xl font-black transition-colors ${
+          <PageLayout
+            onTabChange={onTabChange}
+            onWalletOpen={() => setIsWalletModalOpen(true)}
+            onGameClick={() => {}}
+            onGameCenterClick={onGameCenterClick}
+          >
+            {/* 1. PAGE TITLE */}
+            <header className="px-5 lg:px-0 py-6 flex items-center justify-between">
+              <h1 className={`text-2xl font-black transition-colors ${
                 isDarkMode ? 'text-white' : 'text-[#19142e]'
-                    }`}>
-                        Aktivite Merkezi
-                      </h1>
-                      {unreadCount > 0 && (
-                        <p className={`text-xs md:text-sm font-bold ${isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'}`}>
-                          {unreadCount} yeni aktivite
-                        </p>
-                      )}
-                    </div>
+              }`}>Aktivite Merkezi</h1>
               <button 
-                      className={`p-1.5 md:p-2 rounded-lg transition-colors group ${
+                className={`p-2 rounded-lg transition-colors group ${
                   isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-white'
                 }`}
                 aria-label="Mark all as read"
-                      title="Tümünü okundu işaretle"
               >
-                      <CheckCircle2 className={`w-4 h-4 md:w-5 md:h-5 transition-colors ${
+                <CheckCircle2 className={`w-5 h-5 transition-colors ${
                   isDarkMode ? 'text-slate-400 group-hover:text-[#5852c4]' : 'text-[#8279a5] group-hover:text-[#5852c4]'
                 }`} strokeWidth={2.5} />
               </button>
-                  </div>
             </header>
 
                 {/* 2. FILTER TABS */}
@@ -1222,91 +1203,79 @@ export const NotificationsScreen = ({
                       const count = getFilterCount(filter.value);
                       const isActive = activeFilter === filter.value;
                       
-                  return (
+                      return (
                         <button
                           key={filter.value}
                           onClick={() => setActiveFilter(filter.value)}
-                          className={`flex items-center gap-1 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 ${
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap transition-all ${
                             isActive
                               ? isDarkMode
-                                ? 'bg-[#5852c4] text-white shadow-lg shadow-[#5852c4]/20'
-                                : 'bg-[#5852c4] text-white shadow-lg shadow-[#5852c4]/20'
+                                ? 'bg-[#5852c4] text-white'
+                                : 'bg-[#5852c4] text-white'
                               : isDarkMode
-                                ? 'bg-[#1a1a2e] text-slate-400 hover:bg-slate-800 hover:text-white border border-slate-700/50'
-                                : 'bg-white text-[#8279a5] hover:bg-[#f2f3f7] hover:text-[#19142e] border border-[#ededff]'
+                                ? 'bg-slate-800/50 text-slate-300 hover:bg-slate-700'
+                                : 'bg-white text-[#8279a5] hover:bg-[#f2f3f7]'
                           }`}
                         >
-                          <FilterIcon className="w-3.5 h-3.5 md:w-4 md:h-4" strokeWidth={2.5} />
+                          <FilterIcon className="w-4 h-4" />
                           <span>{filter.label}</span>
                           {count > 0 && (
-                            <span className={`px-1 md:px-1.5 py-0.5 rounded-full text-[10px] md:text-xs ${
+                            <span className={`px-1.5 py-0.5 rounded-full text-xs ${
                               isActive
                                 ? 'bg-white/20 text-white'
                                 : isDarkMode
-                                  ? 'bg-slate-700 text-slate-300'
+                                  ? 'bg-slate-700 text-slate-400'
                                   : 'bg-[#f2f3f7] text-[#8279a5]'
                             }`}>
                               {count}
                             </span>
                           )}
                         </button>
-                  );
-                })}
-              </div>
-            </div>
-
-                {/* 3. ACTIVITY TIMELINE */}
-                <div className="px-5 lg:px-0 space-y-4 md:space-y-6">
-                  {activityGroups.length > 0 ? (
-                    activityGroups.map((group) => (
-                <div key={group.label}>
-                  {/* Group Label */}
-                        <div className="flex items-center gap-1.5 md:gap-2 mb-2 md:mb-3">
-                          <div className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${
-                      isDarkMode ? 'bg-slate-500' : 'bg-[#8279a5]'
-                    }`} />
-                          <h3 className={`text-[10px] md:text-xs font-black uppercase tracking-wider ${
-                      isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'
-                    }`}>
-                      {group.label}
-                    </h3>
-                  </div>
-                  
-                  {/* Group Items */}
-                        <div className={`rounded-lg md:rounded-xl shadow-sm overflow-hidden border ${
-                    isDarkMode 
-                      ? 'bg-[#1a1a2e] border-slate-700/50' 
-                      : 'bg-white border-[#ededff]'
-                  }`}>
-                          {group.activities.map((activity) => renderActivityItem(activity))}
+                      );
+                    })}
                   </div>
                 </div>
-                    ))
-                  ) : (
-                    <div className={`rounded-lg md:rounded-xl shadow-sm border p-8 md:p-12 text-center ${
+
+            {/* 4. NOTIFICATION LIST (GROUPED) */}
+            <div className="px-5 lg:px-0 space-y-6">
+              {activityGroups.length > 0 ? (
+                activityGroups.map((group) => (
+                  <div key={group.label}>
+                    {/* Group Label */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className={`w-1 h-1 rounded-full ${
+                        isDarkMode ? 'bg-slate-500' : 'bg-[#8279a5]'
+                      }`} />
+                      <h3 className={`text-xs font-bold uppercase tracking-wider ${
+                        isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'
+                      }`}>
+                        {group.label}
+                      </h3>
+                    </div>
+                    
+                    {/* Group Items */}
+                    <div className={`rounded-xl shadow-sm overflow-hidden border ${
                       isDarkMode 
                         ? 'bg-[#1a1a2e] border-slate-700/50' 
                         : 'bg-white border-[#ededff]'
                     }`}>
-                      <ActivityIcon className={`w-8 h-8 md:w-12 md:h-12 mx-auto mb-3 md:mb-4 ${
-                        isDarkMode ? 'text-slate-600' : 'text-[#8279a5]'
-                      }`} />
-                      <p className={`text-xs md:text-sm font-bold mb-1 ${
-                        isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'
-                      }`}>
-                        Bu kategoride aktivite bulunamadı
-                      </p>
-                      <p className={`text-[10px] md:text-xs ${
-                        isDarkMode ? 'text-slate-500' : 'text-[#8279a5]'
-                      }`}>
-                        Başka bir filtre seçmeyi deneyin
-                      </p>
+                      {group.activities.map((activity) => renderActivityItem(activity))}
                     </div>
-                  )}
+                  </div>
+                ))
+              ) : (
+                <div className={`rounded-xl p-8 text-center ${
+                  isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'
+                }`}>
+                  <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'}`}>
+                    Bu filtre için aktivite bulunamadı.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Footer */}
-                <div className="px-5 lg:px-0 mt-6 md:mt-8 text-center">
+            <div className="px-5 lg:px-0 mt-8 text-center">
               <button className={`inline-flex items-center gap-2 text-xs font-bold transition-colors ${
                 isDarkMode 
                   ? 'text-slate-400 hover:text-[#5852c4]' 
@@ -1316,55 +1285,7 @@ export const NotificationsScreen = ({
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
-              </main>
-
-              {/* RIGHT COLUMN - Sidebar with Daily Summary (Desktop Only) */}
-              <aside className="hidden lg:block w-[30%]">
-                <div className="sticky top-[84px] space-y-6">
-                  {/* Daily Summary Card - Above Profile */}
-                  <div className={`rounded-[10px] transition-all ${
-                    isDarkMode ? 'bg-transparent' : 'bg-transparent'
-                  }`}>
-                    <div className="flex items-center justify-between mb-4">
-                      <p className={`text-xs font-bold uppercase tracking-wider ${
-                        isDarkMode ? 'text-slate-400' : 'text-[#8279a5]'
-                      }`}>BUGÜN</p>
-                      <Calendar className={`w-4 h-4 ${isDarkMode ? 'text-slate-500' : 'text-[#8279a5]'}`} strokeWidth={2} />
-                    </div>
-                    
-                    {/* GençCoin - Only today's earned coins */}
-                    {todayEarnedCoins > 0 && (
-                      <div className={`rounded-[10px] p-4 ${
-                      isDarkMode 
-                          ? 'bg-gradient-to-r from-[#5852c4] via-[#4F46E5] to-[#3B82F6]' 
-                          : 'bg-gradient-to-r from-[#5852c4] via-[#4F46E5] to-[#3B82F6]'
-                    }`}>
-                      <div className="flex items-baseline gap-2 mb-1.5">
-                          <span className="text-2xl font-black text-white">+{todayEarnedCoins}</span>
-                        <span className="text-sm font-bold text-white/90">GC</span>
-                      </div>
-                      <p className="text-white/80 text-xs">GençCoin</p>
-                    </div>
-                    )}
-                  </div>
-                  
-                  {/* Right Sidebar Components - Manual Implementation */}
-                  <MiniProfileCard 
-                    onProfileClick={() => onTabChange?.('profile')}
-                    coins={6240}
-                  />
-                  <TrendingVertical />
-                  <SuggestedGames 
-                    onGameClick={(gameId) => {
-                      if (gameId === 'all') {
-                        onGameCenterClick?.();
-                      }
-                    }} 
-                  />
-                </div>
-              </aside>
-            </div>
-          </div>
+          </PageLayout>
         </div>
       </div>
 
